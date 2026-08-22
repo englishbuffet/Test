@@ -1,0 +1,3278 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f8fb">
+<title>Enbu — English Buffet with AI</title>
+<style>
+:root{--pink:#e86a9d;--purple:#7e62a5;--ink:#4d4057;--line:#e8e2ed;--bg:#f7f8fb;--card:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea{font:inherit}
+.wrap{width:min(100vw,700px);height:100dvh;margin:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 5px 18px rgba(85,68,100,.07)}
+.header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px}
+.brand{display:flex;align-items:center;gap:9px}.avatar-mini{font-size:34px}.brand h1{margin:0;font-size:25px;color:var(--pink)}.brand p{margin:1px 0 0;color:#8d739f;font-size:12px;font-weight:700}
+.adult-btn{border:0;background:#f4eff8;color:var(--purple);border-radius:12px;padding:8px 10px;font-weight:800}
+.lesson{padding:10px}.lesson-title{font-size:14px;font-weight:900;color:#6d5b86;margin-bottom:6px}.lesson textarea{width:100%;min-height:90px;max-height:150px;border:1px solid #ded5e6;border-radius:11px;padding:9px;background:#fcfbfe;color:var(--ink);resize:vertical;font-size:12px;line-height:1.35}.lesson-actions{display:flex;gap:6px;margin-top:6px}.small{border:0;border-radius:9px;background:#f3edf9;color:#6f5890;padding:7px 9px;font-size:12px;font-weight:800}
+.status-card{padding:9px}.status-head{display:flex;justify-content:space-between;align-items:center}.status-title{font-weight:900;font-size:13px}.status-now{font-size:12px;color:#725d7f;max-width:60%;text-align:right}.status-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:7px}.diag{padding:7px 8px;border-radius:10px;background:#f5f6f9;font-size:11px}.diag b{display:block;font-size:10px;color:#8b7b95;margin-bottom:2px}.diag[data-state="ok"]{background:#ebfff5;color:#2d8c69}.diag[data-state="busy"]{background:#fff8dc;color:#8f6f21}.diag[data-state="error"]{background:#fff0f3;color:#b33c5d}
+.status-wrap{position:relative}
+.status-summary{width:100%;border:1px solid var(--line);display:flex;align-items:center;gap:9px;padding:10px 12px;cursor:pointer;text-align:left;color:var(--ink)}
+.status-summary-title{font-size:14px;font-weight:900}
+.status-summary-turn{margin-left:auto;font-size:12px;font-weight:800;color:#7b6b86;white-space:nowrap}
+.status-chevron{font-size:18px;color:#8e7a9b;transition:.2s transform}
+.status-summary.open .status-chevron{transform:rotate(180deg)}
+.status-dot{width:13px;height:13px;min-width:13px;border-radius:50%;background:#f4c64e;box-shadow:0 0 0 3px rgba(244,198,78,.18)}
+.status-summary[data-state="ok"] .status-dot{background:#18b765;box-shadow:0 0 0 3px rgba(24,183,101,.16)}
+.status-summary[data-state="error"] .status-dot{background:#e34f65;box-shadow:0 0 0 3px rgba(227,79,101,.14)}
+.status-summary[data-state="busy"] .status-dot{background:#f4c64e;box-shadow:0 0 0 3px rgba(244,198,78,.18)}
+.status-details{display:none;padding:10px;margin-top:6px}
+.status-details.open{display:block}
+.status-detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:13px}
+.status-close{border:0;width:28px;height:28px;border-radius:50%;background:#f4eff8;color:#76578f;font-weight:900}
+.status-now{margin-top:8px;padding:7px 9px;background:#f7f5f9;border-radius:9px;font-size:11px;color:#776880}
+.status-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.diag{padding:7px 8px;border-radius:10px;background:#f5f6f9;font-size:11px}
+.diag b{display:block;font-size:10px;color:#8b7b95;margin-bottom:2px}
+.diag[data-state="ok"]{background:#ebfff5;color:#2d8c69}
+.diag[data-state="busy"]{background:#fff8dc;color:#8f6f21}
+.diag[data-state="error"]{background:#fff0f3;color:#b33c5d}
+
+.main{flex:1;display:flex;flex-direction:column;min-height:0}.avatar-zone{flex:1;min-height:240px;display:flex;justify-content:center;align-items:center;position:relative}.emotion{position:absolute;top:4px;right:6px;font-size:12px;font-weight:800;color:#cf608e;background:#fff5fa;border:1px solid #f4d8e5;padding:7px 9px;border-radius:11px}.bubble{position:absolute;left:5px;top:10px;font-size:12px;font-weight:800;color:#755d89;background:#fff;border:1px solid var(--line);padding:7px 9px;border-radius:11px}
+.face{width:min(46vw,260px);aspect-ratio:1;border-radius:48% 48% 45% 45%;position:relative;background:linear-gradient(145deg,#edf0f5,#d4d8e1);box-shadow:0 18px 34px rgba(72,64,80,.15);transition:.25s transform,.25s box-shadow}
+.ear{position:absolute;width:29%;height:43%;top:-28%;background:linear-gradient(145deg,#edf0f5,#cbd0d9);border-radius:60% 60% 40% 40%;z-index:2;transform-origin:50% 90%;transition:width .22s ease,height .22s ease,top .22s ease,transform .22s ease}.ear:after{content:"";position:absolute;inset:18% 25%;border-radius:60%;background:#f0b6c9}.ear.l{left:10%;transform:rotate(-8deg)}.ear.r{right:10%;transform:rotate(8deg)}
+.eyes{position:absolute;top:29%;left:16%;right:16%;display:flex;justify-content:space-between;z-index:4}.eye{width:28%;height:23%;background:#fff;border-radius:50%;position:relative;overflow:hidden;box-shadow:inset 0 -6px 0 #ece7eb;transition:.22s transform,.22s height}.eye.blink{height:3%}.pupil{position:absolute;width:47%;height:57%;left:26.5%;top:23%;border-radius:50%;background:#574759;transition:.22s transform,.22s width,.22s height}.pupil:after{content:"";position:absolute;width:24%;height:24%;background:#fff;border-radius:50%;left:17%;top:13%}
+.brow{position:absolute;top:22%;width:24%;height:5px;background:#765f72;border-radius:99px;z-index:5;transform-origin:center;transition:transform .10s ease}.brow.left{left:18%;transform:translateY(var(--brow-left-y,0px)) rotate(calc(7deg + var(--brow-left-rot,0deg)))}.brow.right{right:18%;transform:translateY(var(--brow-right-y,0px)) rotate(calc(-7deg + var(--brow-right-rot,0deg)))}
+.cheek{position:absolute;width:18%;height:8%;top:52%;border-radius:50%;background:#ff9ab6;opacity:.55;z-index:3}.cheek.l{left:7%}.cheek.r{right:7%}
+.mouth{position:absolute;left:38%;right:38%;top:61%;height:8%;border-bottom:6px solid #674b58;border-radius:0 0 70% 70%;z-index:5;transition:.1s height}.mouth.small{height:4%}.mouth.small:before{display:none}.mouth.open{height:17%;border:5px solid #674b58;border-top:0;background:#fff}
+.nose{position:absolute;left:47%;top:48%;width:7%;height:5%;background:#f28da8;border-radius:50%;z-index:5}
+/* Listening: keep the ears clearly visible and make them perk up. */
+.face.listening .ear{width:32%;height:51%;top:-35%;z-index:2}
+.face.listening .ear.l{transform:rotate(-5deg) translateY(-3%)}
+.face.listening .ear.r{transform:rotate(5deg) translateY(-3%)}
+/* Character-specific small ears should still perk up while listening. */
+.face.listening.character-chick .ear{width:24%;height:25%;top:-14%}
+.face.listening.character-frog .ear{width:28%;height:30%;top:-19%}
+.face.listening.character-penguin .ear{width:25%;height:25%;top:-14%}
+.face.listening.character-koala .ear{width:36%;height:37%;top:-16%}
+
+.face.listening .pupil{transform:translateY(-2px)}.face.thinking .pupil{transform:translate(-7px,-4px)}.face.thinking .brow.left{transform:translateY(-2px) rotate(-8deg)}.face.thinking .brow.right{transform:translateY(-5px) rotate(18deg)}.face.surprised .eye{height:29%}.face.surprised .pupil{width:32%;height:38%;left:34%;top:31%}.face.happy .eye{transform:scale(1.05)}.face.happy .cheek{opacity:.9}.face.excited{animation:bounce .65s infinite alternate}.face.confused .pupil{transform:translate(5px,0)}.face.sleepy .eye{height:10%}.face.wink .eye.right{height:3%}.face.wink .pupil.right{display:none}.face.speaking{box-shadow:0 0 0 6px rgba(232,106,157,.17),0 18px 38px rgba(232,106,157,.22)}
+@keyframes bounce{to{transform:translateY(-5px)}}
+.caption{padding:9px 10px}.en{font-size:17px;font-weight:900;color:#4e486d}.vi{margin-top:4px;background:#fff9df;border-radius:9px;padding:6px;font-size:14px;font-weight:750;color:#986a28}.hint{font-size:14px;line-height:1.3;color:#8b7d94;margin-top:5px}
+.controls{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}.emotion-btn{border:0;background:#fff;border:1px solid #eae2ef;border-radius:10px;padding:6px 8px;font-size:11px;font-weight:800;color:#6e5b7f}
+.debug{height:90px;overflow:auto;background:#111;color:#d7d7d7;border-radius:12px;padding:8px;font:10px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}
+.bottom{display:flex;gap:7px;align-items:center;padding:7px}.mic{width:60px;height:48px;border:0;border-radius:14px;background:var(--pink);color:#fff;font-size:24px}.bottom-btn{border:0;border-radius:10px;background:#f4eff8;color:var(--purple);padding:9px;font-weight:800}.encourage{flex:1;text-align:center;color:#c95e8e;background:#fff4f8;padding:8px;border-radius:10px;font-weight:900;font-size:12px}
+.score-good{background:#ebfff5;color:#278762!important}.score-try{background:#fff8dc;color:#8f6f21!important}.score-stars{letter-spacing:1px}
+.adult-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(55,43,70,.27);align-items:center;justify-content:center;padding:16px}.adult-modal.open{display:flex}.adult-dialog{width:min(92vw,400px);padding:14px}.adult-head{display:flex;justify-content:space-between;align-items:start}.adult-title{font-weight:900;color:var(--purple);font-size:17px}.adult-close{border:0;width:32px;height:32px;border-radius:50%;background:#f4eff8;color:#76578f;font-weight:900}.api-input{width:100%;border:1px solid #ddd2eb;border-radius:10px;padding:9px;margin-top:12px}.connect{width:100%;border:0;border-radius:10px;padding:9px;margin-top:7px;background:var(--purple);color:#fff;font-weight:900}
+@media(max-width:640px){.wrap{padding:7px}.lesson textarea{min-height:75px}.avatar-zone{min-height:230px}.face{width:min(54vw,230px)}.status-grid{grid-template-columns:1fr 1fr 1fr}.debug{height:82px}.bubble{top:3px}.emotion{top:3px}}
+
+.vocab-modal{display:none;position:fixed;inset:0;z-index:1100;background:rgba(55,43,70,.27);align-items:center;justify-content:center;padding:16px}
+.vocab-modal.open{display:flex}
+.vocab-dialog{width:min(94vw,520px);max-height:min(82dvh,720px);overflow:auto;padding:16px}
+.vocab-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vocab-title{font-size:19px;font-weight:900;color:var(--purple)}
+.vocab-close{border:0;width:32px;height:32px;border-radius:50%;background:#f4eff8;color:#76578f;font-weight:900}
+.vocab-sub{margin:4px 0 12px;font-size:12px;color:#8b7895}
+.vocab-loading{padding:12px;border-radius:12px;background:#fff9df;color:#986a28;font-weight:800}
+.vocab-list{display:flex;flex-direction:column;gap:8px}
+.vocab-row{display:grid;grid-template-columns:1.1fr .9fr 1.5fr auto;gap:8px;align-items:center;padding:10px 11px;background:#faf7fd;border:1px solid #eee6f3;border-radius:12px}
+.vocab-word{font-weight:900;color:#55466b}
+.vocab-ipa{font-size:12px;color:#8b6d9c}
+.vocab-meaning{font-size:13px;font-weight:750;color:#7d612f}
+.vocab-say{border:0;border-radius:9px;background:#f8ddec;color:#a54876;padding:7px 9px;font-weight:900}
+.vocab-note{margin-top:10px;font-size:11px;color:#8c7b95}
+.vocab-error{padding:12px;border-radius:12px;background:#fff0f3;color:#b33c5d;font-weight:800}
+@media(max-width:640px){
+  .vocab-dialog{padding:13px}
+  .vocab-row{grid-template-columns:1fr 1fr;gap:6px}
+  .vocab-meaning{grid-column:1 / 2}
+  .vocab-say{grid-column:2 / 3;justify-self:end}
+}
+
+/* V10.18 — Student lesson result / finish screen */
+#lessonResultOverlay{
+  position:fixed; inset:0; z-index:9999;
+  display:none; align-items:center; justify-content:center;
+  padding:20px; background:rgba(246,244,250,.92);
+  backdrop-filter:blur(8px);
+}
+#lessonResultOverlay.show{display:flex}
+.lesson-result-card{
+  width:min(520px,100%); border:1px solid #e8dff0; border-radius:28px;
+  background:#fff; box-shadow:0 20px 60px rgba(76,61,94,.18);
+  padding:28px 24px; text-align:center;
+}
+.lesson-result-avatar{font-size:58px; margin-bottom:3px; line-height:1}
+.lesson-result-name{font-size:21px;font-weight:800;color:#8a6ca3;margin:0 0 9px}
+.lesson-result-title{font-size:30px;font-weight:800;color:#554875;margin:0 0 6px}
+.lesson-result-stars{font-size:36px;letter-spacing:2px;margin:8px 0 14px}
+.lesson-result-score{font-size:20px;font-weight:800;color:#554875}
+.lesson-result-note{margin:12px 0 20px;color:#756681;font-size:16px}
+.lesson-result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.lesson-result-actions button{
+  border:0;border-radius:16px;padding:13px 20px;font-size:17px;
+  font-weight:800;cursor:pointer;
+}
+#finishLessonBtn{background:#e85f9b;color:#fff}
+#changeStudentFromResultBtn{background:#f1eaf7;color:#604f76}
+#studentNameModal{
+  position:fixed;inset:0;z-index:10000;display:none;align-items:center;
+  justify-content:center;padding:20px;background:rgba(30,24,38,.42);
+}
+#studentNameModal.show{display:flex}
+.student-name-card{
+  width:min(420px,100%);background:#fff;border-radius:24px;padding:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;
+}
+.student-name-card h3{margin:0 0 8px;color:#554875;font-size:25px}
+.student-name-card p{margin:0 0 16px;color:#756681}
+#studentNameInput{
+  width:100%;box-sizing:border-box;padding:13px 15px;border:2px solid #e7dcef;
+  border-radius:14px;font-size:18px;outline:none;
+}
+.student-name-actions{display:flex;gap:10px;margin-top:14px}
+.student-name-actions button{flex:1;border:0;border-radius:14px;padding:12px;font-weight:800;font-size:16px}
+#startStudentBtn{background:#e85f9b;color:#fff}
+#cancelStudentBtn{background:#f1eaf7;color:#604f76}
+
+
+/* V10.21 Safari/iPhone interaction safeguard */
+#studentNameModal.show{pointer-events:auto}
+#studentNameModal .student-name-card{position:relative;z-index:1}
+#studentNameInput{position:relative;z-index:2;pointer-events:auto}
+#studentNameModal button{position:relative;z-index:2;pointer-events:auto}
+
+
+/* V10.23 — KID-FIRST UI */
+:root{--pink:#ef6fa8;--pink2:#ffdceb;--purple:#70569a;--ink:#443b52;--muted:#8b7b96;--line:#eee6f2;--bg:#fff9fc;--card:#fff}
+html,body{background:linear-gradient(180deg,#fff9fc 0%,#f7f5ff 100%)}
+body{color:var(--ink)}
+.wrap{width:min(100vw,760px);padding:12px 14px 14px;gap:10px}
+.card{border:1px solid rgba(112,86,154,.10);border-radius:22px;box-shadow:0 8px 28px rgba(82,62,103,.07)}
+.header{padding:10px 12px;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);position:relative;z-index:5}
+.brand{gap:10px}.avatar-mini{font-size:38px}.brand h1{font-size:24px;letter-spacing:-.3px}.brand p{font-size:11px;color:#9b88a9}
+.adult-btn{background:#f6f0fa;border:1px solid #eee4f5;padding:8px 11px;border-radius:13px}
+#changeStudentBtn{border:1px solid #eadff1!important;background:#fff!important;color:#665178!important;margin-left:6px!important;padding:8px 10px!important;border-radius:13px!important;font-weight:800;cursor:pointer}
+.lesson{padding:10px 12px;background:rgba(255,255,255,.82);border-radius:18px}
+.lesson-title{font-size:12px;color:#7b6590;margin:0}.lesson textarea{min-height:58px;max-height:115px;border-radius:13px;background:#fff;font-size:12px}.lesson-actions{margin-top:5px}
+.kid-strip{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 12px;background:#fff;border-radius:18px}
+.kid-strip-main{min-width:0}.kid-student{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:900;color:#5b4a70}.kid-student-name{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kid-progress-line{display:flex;align-items:center;gap:8px;margin-top:6px}.kid-progress-track{height:7px;flex:1;background:#f1e9f5;border-radius:99px;overflow:hidden}.kid-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#f38ab7,#8e72bd);border-radius:99px;transition:width .35s ease}.kid-progress-text{font-size:11px;font-weight:900;color:#786586;white-space:nowrap}.kid-score{padding:8px 10px;border-radius:13px;background:#fff7dc;color:#8d6c26;font-size:11px;font-weight:900;white-space:nowrap}
+.status-wrap{margin:0}.status-summary{padding:8px 11px;border-radius:16px;background:rgba(255,255,255,.75);border:1px solid rgba(112,86,154,.08)}.status-summary-title{font-size:11px;color:#81728c}.status-summary-turn{font-size:11px;color:#665777}.status-dot{width:10px;height:10px;min-width:10px}
+.status-details{border-radius:18px;padding:11px;margin-top:5px}
+.main{gap:9px}.avatar-zone{flex:1;min-height:255px;max-height:390px;padding:8px 6px}.face{width:min(49vw,275px);box-shadow:0 20px 42px rgba(72,64,80,.13)}
+.bubble{left:4px;top:8px;padding:8px 11px;border-radius:14px;background:#fff;box-shadow:0 5px 16px rgba(85,68,100,.06);font-size:11px}.emotion{right:4px;top:8px;padding:7px 10px;border-radius:14px;font-size:11px}
+.caption{padding:12px 13px;border-radius:19px;text-align:center;background:#fff}.en{font-size:19px;line-height:1.28;letter-spacing:-.15px}.vi{margin-top:7px;padding:7px 9px;border-radius:11px;font-size:13px;line-height:1.3}.hint{font-size:14px;line-height:1.3;margin-top:6px;color:#97889e}
+.controls,.debug{display:none!important}
+.bottom{padding:8px 10px;border-radius:22px;gap:8px;background:rgba(255,255,255,.96);box-shadow:0 10px 30px rgba(82,62,103,.10)}
+.mic{width:62px;height:56px;border-radius:18px;font-size:25px;box-shadow:0 7px 16px rgba(239,111,168,.22);transition:.18s transform,.18s box-shadow}.mic.active{transform:translateY(-2px) scale(1.03);box-shadow:0 9px 22px rgba(239,111,168,.30)}
+.bottom-btn{padding:10px 11px;border-radius:14px;font-size:12px}.encourage{padding:9px 8px;border-radius:14px;font-size:11px;min-width:0}
+#studentNameModal{background:rgba(48,37,60,.38);backdrop-filter:blur(7px)}.student-name-card{border-radius:28px;padding:25px 22px;box-shadow:0 24px 70px rgba(60,45,73,.25)}
+#lessonResultOverlay{background:rgba(255,250,253,.90);backdrop-filter:blur(10px)}.lesson-result-card{border-radius:30px;padding:30px 24px;box-shadow:0 24px 70px rgba(76,61,94,.20)}
+@media(max-width:640px){
+ .wrap{padding:7px 8px 9px;gap:7px}.header{padding:8px 9px;border-radius:18px}.brand h1{font-size:22px}.avatar-mini{font-size:34px}.brand p{display:none}
+ #changeStudentBtn{font-size:0!important;width:38px;height:38px;padding:0!important;margin-left:3px!important}#changeStudentBtn::before{content:"👤";font-size:17px}
+ .adult-btn{font-size:0;width:38px;height:38px;padding:0}.adult-btn::before{content:"⚙️";font-size:16px}
+ .kid-strip{padding:8px 10px}.kid-score{padding:7px 8px}.kid-student-name{max-width:120px}.avatar-zone{min-height:225px;max-height:300px}.face{width:min(58vw,235px)}
+ .bubble,.emotion{font-size:10px}.bubble{max-width:48%}.emotion{max-width:43%}.caption{padding:10px 9px}.en{font-size:17px}.vi{font-size:12px}
+ .bottom{gap:6px}.bottom-btn{padding:9px 8px;font-size:11px}.mic{width:58px;height:54px}.encourage{font-size:10px}
+}
+
+
+/* ================= V10.24 — ENGLISH BUFFET + CHARACTER SYSTEM ================= */
+.lesson-check{margin-top:7px;padding:7px 9px;border-radius:11px;background:#f7f3fa;color:#79678a;font-size:11px;font-weight:850;transition:.2s}
+.lesson-check[data-state="ready"]{background:#ebfff5;color:#278762}.lesson-check[data-state="busy"]{background:#fff8dc;color:#8f6f21}.lesson-check[data-state="error"]{background:#fff0f3;color:#b33c5d}
+.kid-meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px}.kid-lesson-count{font-size:10px;font-weight:900;color:#806d8f;white-space:nowrap}
+.character-picker{padding:8px 10px;background:rgba(255,255,255,.92);overflow:hidden}
+.character-picker-head{display:flex;align-items:center;justify-content:space-between;padding:0 3px 6px;font-size:11px;font-weight:900;color:#725d86}.character-picker-head span:last-child{color:#b15b89}
+.character-list{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none}.character-list::-webkit-scrollbar{display:none}
+.character-chip{flex:0 0 54px;width:54px;height:58px;border:1px solid #eee4f3;border-radius:16px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;box-shadow:0 3px 9px rgba(82,62,103,.05);transition:.16s transform,.16s border,.16s box-shadow}.character-chip:hover{transform:translateY(-2px)}.character-chip.selected{border:2px solid #ef6fa8;box-shadow:0 5px 14px rgba(239,111,168,.20);background:#fff7fb}.character-chip:first-child{font-size:24px}.character-chip{font-size:23px}.character-chip small{font-size:8px;font-weight:900;color:#796783}
+/* Plush-like character variants. The face remains animated by the same eye/mouth engine. */
+.face{overflow:visible}
+.face.character-cat{background:linear-gradient(145deg,#fff5df,#e8c9a5)}.face.character-cat .ear{clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:20%}.face.character-cat .ear:after{background:#ef9da9;inset:25% 30% 20%}
+.face.character-panda{background:linear-gradient(145deg,#fff,#e9e9ed)}.face.character-panda .ear{background:#25232a}.face.character-panda .ear:after{display:none}.face.character-panda .eye{box-shadow:inset 0 -6px 0 #ece7eb,0 0 0 9px rgba(38,35,42,.11)}
+.face.character-frog{background:linear-gradient(145deg,#baf09d,#62c978)}.face.character-frog .ear{width:24%;height:24%;top:-11%;background:#8ee27c;border-radius:50%}.face.character-frog .ear:after{background:#d8ffca;inset:24%;border-radius:50%}.face.character-frog .eye{height:26%}.face.character-frog .mouth{border-color:#437b4b}
+.face.character-lion{background:radial-gradient(circle at 50% 45%,#ffeaa6 0 48%,#e2a94f 49% 100%);box-shadow:0 0 0 18px #d98f3e,0 20px 42px rgba(72,64,80,.13)}.face.character-lion .ear{background:#d99a4c;border-radius:50%}.face.character-lion .ear:after{background:#f6c58d}
+.face.character-tiger{background:repeating-linear-gradient(120deg,#ffd07a 0 18px,#f4a341 18px 25px,#ffd07a 25px 42px);box-shadow:0 20px 42px rgba(72,64,80,.13)}.face.character-tiger .ear{background:#f2a13f;border-radius:50%}.face.character-tiger .ear:after{background:#f9c27c}
+.face.character-penguin{background:radial-gradient(ellipse at 50% 62%,#fff 0 34%,transparent 35%),linear-gradient(145deg,#475467,#172331)}.face.character-penguin .ear{width:20%;height:20%;top:-7%;background:#243447;border-radius:50%}.face.character-penguin .ear:after{display:none}.face.character-penguin .cheek{background:#f6b2bc}
+.face.character-dog{background:linear-gradient(145deg,#f4d0a3,#c58a58)}.face.character-dog .ear{width:30%;height:50%;top:-10%;background:linear-gradient(145deg,#b97c50,#815137);border-radius:55% 35% 65% 45%}.face.character-dog .ear.l{left:-2%;transform:rotate(17deg)}.face.character-dog .ear.r{right:-2%;transform:rotate(-17deg)}.face.character-dog .ear:after{display:none}
+.face.character-dragon{background:linear-gradient(145deg,#a8edaa,#4fba6d)}.face.character-dragon .ear{width:22%;height:31%;top:-17%;background:#54bd72;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:10%}.face.character-dragon .ear:after{background:#f3bf70;inset:25% 36% 22%}
+.face.character-hippo{background:linear-gradient(145deg,#d9c9df,#a993b5)}.face.character-hippo .ear{width:21%;height:21%;top:-6%;background:#a58eb0;border-radius:50%}.face.character-hippo .ear:after{display:none}.face.character-hippo .nose{width:13%;left:43.5%;height:8%;background:#9b809f}
+.face.character-chick{background:linear-gradient(145deg,#fff09a,#f5c943)}.face.character-chick .ear{width:17%;height:15%;top:-5%;background:#f2cf4c;border-radius:50%}.face.character-chick .ear:after{display:none}.face.character-chick .nose{width:0;height:0;left:47%;top:50%;border-left:9px solid transparent;border-right:9px solid transparent;border-top:12px solid #e89232;background:none;border-radius:0}
+.face.character-koala{background:linear-gradient(145deg,#d8e0e2,#9aa8ad)}.face.character-koala .ear{width:31%;height:31%;top:-8%;background:#aab8bc;border-radius:50%}.face.character-koala .ear:after{background:#d7c6cc;inset:25%;border-radius:50%}.face.character-koala .nose{width:12%;left:44%;height:9%;top:48%;background:#2d2d35}
+.character-badge{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);padding:5px 10px;border-radius:99px;background:rgba(255,255,255,.90);border:1px solid rgba(112,86,154,.10);font-size:10px;font-weight:900;color:#765f86;box-shadow:0 4px 12px rgba(82,62,103,.08)}
+@media(max-width:640px){.character-picker{padding:7px 8px}.character-chip{flex-basis:49px;width:49px;height:53px;font-size:21px}.character-chip small{font-size:7px}.kid-meta{gap:3px}.kid-lesson-count{font-size:9px}}
+
+
+/* ================= V10.25B — DESKTOP LAYOUT + EXPRESSION SYSTEM ================= */
+@media(min-width:861px){
+  html,body{overflow:hidden}
+  .wrap{width:min(100vw,1320px);height:100dvh;padding:12px 14px;gap:10px;display:grid;grid-template-columns:300px minmax(460px,1fr) 300px;grid-template-rows:auto auto minmax(0,1fr) auto;align-items:stretch}
+  .header{grid-column:1 / -1;grid-row:1;min-height:78px;padding:10px 18px;border-radius:24px}
+  .brand h1{font-size:34px}.brand p{font-size:15px}.avatar-mini{font-size:52px}
+  .lesson{grid-column:1;grid-row:2 / 4;padding:18px;border-radius:24px;align-self:stretch}
+  .lesson-title{font-size:18px;margin-bottom:10px}.lesson textarea{min-height:170px;max-height:280px;font-size:14px;padding:13px;border-radius:16px}.small{padding:10px 14px;border-radius:12px;font-size:13px}
+  .lesson-check{font-size:12px;padding:10px 11px;border-radius:13px}
+  .kid-strip{grid-column:2;grid-row:2;padding:11px 15px;border-radius:20px}
+  .kid-student{font-size:14px}.kid-progress-text{font-size:12px}.kid-score{font-size:12px}
+  .status-wrap{grid-column:3;grid-row:2 / 4;align-self:start}
+  .status-summary{padding:12px 14px;border-radius:18px}.status-summary-title{font-size:14px}.status-summary-turn{font-size:12px}
+  .main{grid-column:2;grid-row:3;min-height:0;gap:10px}
+  .avatar-zone{min-height:0;max-height:none;flex:1;padding:10px 0 4px}
+  .face{width:min(30vw,410px);max-width:410px;box-shadow:0 24px 48px rgba(72,64,80,.15)}
+  .bubble{left:8px;top:8px;font-size:13px;padding:9px 12px;border-radius:15px}.emotion{right:8px;top:8px;font-size:13px;padding:8px 12px;border-radius:15px}
+  .character-picker{position:absolute;right:4px;top:48%;transform:translateY(-50%);width:205px;padding:10px 9px;border-radius:20px;box-shadow:0 10px 28px rgba(82,62,103,.08)}
+  .character-list{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;overflow:visible}.character-chip{width:42px;height:48px;flex-basis:auto;border-radius:14px;font-size:21px}.character-chip small{font-size:7px}
+  .character-picker-head{font-size:12px;padding:0 3px 7px}
+  .character-badge{bottom:2px;font-size:11px}
+  .caption{padding:14px 17px;border-radius:20px}.en{font-size:23px}.vi{font-size:15px;padding:8px 10px}
+  .bottom{grid-column:1 / -1;grid-row:4;min-height:72px;padding:9px 13px;border-radius:22px}.mic{width:68px;height:58px}.encourage{font-size:14px}.bottom-btn{font-size:13px;padding:11px 14px}
+}
+@media(min-width:861px) and (max-height:760px){
+  .wrap{gap:7px;padding:8px 10px}.header{min-height:62px}.brand h1{font-size:29px}.avatar-mini{font-size:44px}.brand p{font-size:12px}
+  .lesson{padding:13px}.lesson textarea{min-height:110px}.avatar-zone{padding-top:3px}.face{width:min(27vw,330px)}
+  .character-picker{width:180px}.character-chip{width:36px;height:43px;font-size:19px}.character-chip small{font-size:6px}.caption{padding:9px 12px}.en{font-size:19px}.vi{font-size:13px}.bottom{min-height:58px}.mic{width:60px;height:50px}
+}
+@media(max-width:860px){
+  .avatar-zone{flex-direction:column}
+  .character-picker{margin-top:0;width:100%;max-width:100%}.character-badge{bottom:2px}
+}
+
+
+/* ================= V10.25 — EXPRESSION + MOUTH ANIMATION ================= */
+.mouth{
+  left:34%;right:34%;top:59%;height:9%;min-height:9%;
+  border:0;background:transparent;border-radius:0;
+  transition:height .07s ease,width .08s ease,top .08s ease,transform .08s ease;
+  overflow:visible;
+}
+.mouth:before,.mouth:after,.mouth-inner:before,.mouth-inner:after,.tongue{content:"";position:absolute;display:block}
+.mouth:before{left:8%;right:8%;top:30%;height:18%;border-radius:999px;background:#694a58;transition:.08s}
+.mouth-inner{position:absolute;left:7%;right:7%;top:31%;bottom:2%;border-radius:18% 18% 55% 55%;background:#6b3347;transform:scaleY(.05);transform-origin:50% 0;transition:transform .08s ease,background .08s}
+.mouth-inner:before{left:12%;right:12%;top:4%;height:18%;border-radius:0 0 50% 50%;background:#fff;opacity:0;transition:.08s}
+.tongue{left:25%;right:25%;bottom:3%;height:27%;border-radius:55% 55% 45% 45%;background:#ef6f92;transform:scaleY(0);transform-origin:bottom;transition:.08s}
+.mouth.small:before{left:16%;right:16%;top:42%;height:12%}
+.mouth.open{height:19%;top:57%}
+.mouth.open .mouth-inner{transform:scaleY(1)}
+.mouth.open .mouth-inner:before{opacity:1}
+.mouth.wide{left:29%;right:29%;height:22%;top:56%}
+.mouth.wide .mouth-inner{transform:scaleY(1.08)}
+.mouth.smile:before{top:30%;height:36%;border-radius:0 0 60% 60%;background:#694a58}
+.mouth.smile .mouth-inner{transform:scaleY(.5);background:#ef6f92}
+.mouth.smile .tongue{transform:scaleY(.55)}
+.mouth.ooh{left:39%;right:39%;height:18%;top:57%}
+.mouth.ooh:before{display:none}
+.mouth.ooh .mouth-inner{transform:scaleY(1);border-radius:50%;background:#663548}
+.mouth.tongue-out{height:20%;top:57%}
+.mouth.tongue-out .mouth-inner{transform:scaleY(1)}
+.mouth.tongue-out .tongue{transform:scaleY(1)}
+.mouth.sad{top:63%}
+.mouth.sad:before{top:40%;height:25%;border-radius:60% 60% 0 0;background:transparent;border-top:5px solid #694a58}
+.mouth.sad .mouth-inner{transform:scaleY(0)}
+
+.expression-fx{position:absolute;inset:0;pointer-events:none;z-index:7;opacity:0;transition:opacity .15s}
+.expression-fx:before,.expression-fx:after{content:"";position:absolute}
+.face.happy .expression-fx,.face.excited .expression-fx,.face.love .expression-fx,.face.surprised .expression-fx,.face.confused .expression-fx,.face.sleepy .expression-fx{opacity:1}
+.face.happy .mouth{top:58%;height:15%}.face.happy .mouth-inner{transform:scaleY(.9);background:#ef6f92}.face.happy .mouth-inner:before{opacity:.75}
+.face.excited .mouth{height:23%;top:55%}.face.excited .mouth-inner{transform:scaleY(1.15)}
+.face.love .mouth{height:16%}.face.love .mouth-inner{transform:scaleY(.75);background:#ef6f92}
+.face.love .expression-fx:before,.face.love .expression-fx:after{content:"♥";font-size:26px;color:#e94e79;top:24%;line-height:1}.face.love .expression-fx:before{left:10%}.face.love .expression-fx:after{right:10%}
+.face.surprised .mouth{left:39%;right:39%;height:20%;top:58%}.face.surprised .mouth-inner{transform:scaleY(1);border-radius:50%}
+.face.surprised .expression-fx:before,.face.surprised .expression-fx:after{content:"✦";color:#f3bd35;font-size:20px;top:12%}.face.surprised .expression-fx:before{left:7%}.face.surprised .expression-fx:after{right:7%}
+.face.confused .mouth{height:11%;top:62%}.face.confused .mouth:before{top:25%;height:15%}.face.sleepy .mouth{height:9%;top:62%}
+.face.speaking .mouth{animation:mouthTalk .16s ease-in-out infinite alternate}
+.face.speaking .mouth-inner{transform:scaleY(var(--mouth-open,.65))}
+.face.speaking .mouth:before{opacity:.95}
+@keyframes mouthTalk{from{transform:scale(.96,.88)}to{transform:scale(1.04,1.08)}}
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.face.breathe{animation:breathe .85s ease-in-out}
+
+/* Keep character selection completely outside the central Enbu stage. */
+@media(min-width:861px){
+  .character-picker{grid-column:3;grid-row:3;align-self:start;position:static!important;transform:none!important;width:100%!important;margin:0!important;padding:12px!important;border-radius:20px;box-shadow:0 10px 28px rgba(82,62,103,.08)}
+  .character-list{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;overflow:visible}
+  .character-chip{width:100%;height:58px;font-size:25px}
+  .character-chip small{font-size:8px}
+  .main{grid-column:2;grid-row:3}
+  .avatar-zone{padding-right:0}
+}
+@media(min-width:861px) and (max-height:760px){
+  .character-picker{padding:9px!important}.character-chip{height:48px;font-size:21px}
+}
+
+/* Mobile: picker remains below the mascot, never on top of it. */
+@media(max-width:860px){
+  /* On phones: mascot first, character choices immediately after it. */
+  .character-picker{position:static!important;transform:none!important;margin:0!important;width:100%!important;order:6}
+  .main{order:5}
+  .bottom{order:7}
+  .main .avatar-zone{margin-bottom:7px}
+}
+
+</style>
+
+<style id="v10-27-plush-face-tuning">
+/* V10.27 — smaller, softer plush-like face + larger expressive ears */
+.face{
+  width:min(44vw,250px);
+  height:auto;
+  aspect-ratio:0.92;
+  border-radius:46% 46% 53% 53% / 44% 44% 56% 56%;
+}
+/* Give the main animal families a subtly different rounded-cheek silhouette. */
+.face.character-bunny,
+.face.character-cat,
+.face.character-panda,
+.face.character-koala{
+  border-radius:46% 46% 54% 54% / 43% 43% 57% 57%;
+}
+.face.character-lion,
+.face.character-tiger{
+  border-radius:48% 48% 53% 53% / 45% 45% 55% 55%;
+}
+.face.character-dog,
+.face.character-hippo{
+  border-radius:47% 47% 54% 54% / 44% 44% 56% 56%;
+}
+/* Slightly fuller lower face = less geometric, more child-friendly cheeks. */
+.face.character-bunny .cheek,
+.face.character-cat .cheek,
+.face.character-panda .cheek,
+.face.character-koala .cheek{
+  width:20%;
+  height:9%;
+  top:51%;
+}
+/* Base ears are a little larger than V10.26. */
+.face .ear{
+  width:30%;
+  height:46%;
+  top:-25%;
+}
+/* Listening: ears clearly perk up and become noticeably larger. */
+.face.listening .ear{
+  width:35%;
+  height:56%;
+  top:-31%;
+  z-index:6;
+}
+.face.listening .ear.l{transform:rotate(-4deg) translateY(-2%)}
+.face.listening .ear.r{transform:rotate(4deg) translateY(-2%)}
+/* Character-specific ears retain their identity but still become visibly larger when listening. */
+.face.listening.character-bunny .ear,
+.face.listening.character-cat .ear,
+.face.listening.character-panda .ear{width:35%;height:56%;top:-31%}
+.face.listening.character-koala .ear{width:39%;height:40%;top:-16%}
+.face.listening.character-dog .ear{width:34%;height:55%;top:-12%}
+.face.listening.character-lion .ear,
+.face.listening.character-tiger .ear{width:33%;height:48%;top:-23%}
+.face.listening.character-frog .ear{width:31%;height:36%;top:-18%}
+.face.listening.character-penguin .ear{width:28%;height:29%;top:-13%}
+.face.listening.character-dragon .ear{width:29%;height:39%;top:-20%}
+.face.listening.character-hippo .ear{width:28%;height:29%;top:-10%}
+.face.listening.character-chick .ear{width:22%;height:20%;top:-8%}
+/* Keep the small inner-ear detail visible above the face. */
+.face.listening .ear:after{z-index:2}
+@media(max-width:640px){
+  .face{width:min(54vw,220px);aspect-ratio:.92}
+}
+@media(min-width:641px) and (max-width:1100px){
+  .face{width:min(43vw,240px)}
+}
+</style>
+<style id="v10-29-ear-position">
+/* V10.29 — lift ears further away from eyebrows, especially while listening. */
+.face .ear{top:-31%;}
+.face.listening .ear{top:-39%;}
+.face.listening.character-bunny .ear,
+.face.listening.character-cat .ear,
+.face.listening.character-panda .ear{top:-39%;}
+.face.listening.character-koala .ear{top:-23%;}
+.face.listening.character-dog .ear{top:-19%;}
+.face.listening.character-lion .ear,
+.face.listening.character-tiger .ear{top:-30%;}
+.face.listening.character-frog .ear{top:-25%;}
+.face.listening.character-penguin .ear{top:-20%;}
+.face.listening.character-dragon .ear{top:-27%;}
+.face.listening.character-hippo .ear{top:-17%;}
+.face.listening.character-chick .ear{top:-13%;}
+</style>
+
+<style id="v10-30-ui-refinement">
+/* V10.30 — horizontal plush oval face + collapsible lesson content + answer hint */
+.face{
+  aspect-ratio:1.16 / 1;
+  border-radius:50%;
+}
+/* Keep the face compact on mobile while preserving the horizontal oval shape. */
+@media(max-width:640px){.face{aspect-ratio:1.14 / 1}}
+.hidden{display:none!important}.lesson.is-hidden{display:none!important}
+.lesson-toggle-active{background:#e9ddf5!important;color:#654c82!important}
+.answer-hint{font-size:14px;color:#8b6d35;margin-top:5px;font-weight:800}
+</style>
+
+<style id="v11-responsive-mobile">
+/* =========================================================
+   Enbu V11 — iPhone / Mobile one-column layout
+   Keeps the existing lesson logic and interactions intact.
+   ========================================================= */
+@media (max-width: 640px){
+  html,body{overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  body{min-height:100dvh}
+  .wrap{
+    width:100%;
+    max-width:none;
+    min-height:100dvh;
+    height:auto;
+    margin:0;
+    padding:8px;
+    gap:8px;
+  }
+
+  /* Header: compact, thumb-friendly */
+  .header{padding:8px 10px;border-radius:16px;min-height:58px}
+  .brand{gap:7px;min-width:0}
+  .avatar-mini{font-size:30px;line-height:1}
+  .brand h1{font-size:23px;line-height:1}
+  .brand p{font-size:10px;white-space:nowrap}
+  .header > div:last-child{gap:4px!important}
+  #lessonToggleBtn,#changeStudentBtn,.adult-btn{min-height:42px;padding:8px 9px;border-radius:12px;font-size:12px}
+  #lessonToggleBtn{font-size:0}
+  #lessonToggleBtn::after{content:'📚';font-size:18px}
+  #changeStudentBtn{font-size:0}
+  #changeStudentBtn::after{content:'👤';font-size:18px}
+  .adult-btn{font-size:0}
+  .adult-btn::after{content:'⚙️';font-size:18px}
+
+  /* One-column order: lesson → status → Enbu → character picker → controls */
+  .lesson{order:2;padding:9px}
+  .kid-strip{order:3}
+  .status-wrap{order:4}
+  .main{order:5;display:flex;flex-direction:column;min-height:0;flex:none}
+  .character-picker{order:6}
+  .bottom{order:7}
+
+  /* Lesson panel is intentionally compact on a phone. The existing
+     Nội dung toggle can still hide/show the full editor. */
+  .lesson-title{font-size:13px}
+  .lesson textarea{min-height:82px;max-height:180px;font-size:13px;line-height:1.4}
+  .lesson-actions .small{min-height:40px;padding:8px 12px;font-size:12px}
+  .lesson-check{font-size:11px!important}
+
+  /* Student progress */
+  .kid-strip{padding:9px 10px}
+  .kid-strip-main{min-width:0}
+  .kid-student{font-size:13px}
+  .kid-student-name{max-width:42vw;display:inline-block;vertical-align:bottom;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kid-progress-text{font-size:12px}
+  .kid-meta{gap:5px}
+  .kid-lesson-count,.kid-score{font-size:10px;padding:6px 7px}
+
+  /* Status remains a single compact row; details open below it. */
+  .status-summary{min-height:48px;padding:9px 11px}
+  .status-summary-title{font-size:13px}
+  .status-summary-turn{font-size:11px;max-width:48vw;overflow:hidden;text-overflow:ellipsis}
+  .status-details{padding:9px;margin-top:5px}
+  .status-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .diag{font-size:10px;min-height:45px;padding:7px}
+  .diag b{font-size:9px}
+
+  /* Main Enbu area */
+  .avatar-zone{
+    min-height:300px;
+    height:300px;
+    flex:none;
+    width:100%;
+    overflow:visible;
+  }
+  .bubble{left:2px;top:3px;font-size:11px;padding:7px 8px}
+  .emotion{right:2px;top:3px;font-size:11px;padding:7px 8px}
+  .face{
+    width:min(58vw,215px);
+    height:auto;
+    aspect-ratio:1.14 / 1;
+    flex:none;
+  }
+  .character-badge{font-size:10px!important;padding:5px 8px!important}
+
+  /* Larger ears while listening, but lifted safely above brows. */
+  .face .ear{top:-34%}
+  .face.listening .ear{top:-44%;width:36%;height:58%}
+  .face.listening.character-bunny .ear,
+  .face.listening.character-cat .ear,
+  .face.listening.character-panda .ear{top:-44%;width:36%;height:58%}
+  .face.listening.character-koala .ear{top:-27%;width:40%;height:42%}
+  .face.listening.character-dog .ear{top:-22%;width:35%;height:57%}
+  .face.listening.character-lion .ear,
+  .face.listening.character-tiger .ear{top:-34%;width:34%;height:50%}
+  .face.listening.character-frog .ear{top:-29%;width:32%;height:38%}
+  .face.listening.character-penguin .ear{top:-23%;width:29%;height:31%}
+  .face.listening.character-dragon .ear{top:-31%;width:30%;height:41%}
+  .face.listening.character-hippo .ear{top:-20%;width:29%;height:31%}
+  .face.listening.character-chick .ear{top:-16%;width:23%;height:22%}
+
+  /* Caption: English and Vietnamese are equally readable. */
+  .caption{padding:10px 9px;border-radius:15px}
+  .en{font-size:18px;line-height:1.25;text-align:center}
+  .vi{font-size:17px;line-height:1.3;padding:8px 7px;text-align:center}
+  .hint{font-size:14px;text-align:center}
+  .answer-hint{font-size:17px;line-height:1.35}
+  .controls{gap:5px;margin-top:2px}
+  .emotion-btn{min-height:38px;padding:7px 9px;font-size:11px}
+
+  /* Debug log is secondary on mobile: compact, but still available. */
+  .debug{height:68px;max-height:68px;font-size:9px;padding:7px;border-radius:10px}
+
+  /* Character picker is now BELOW the central Enbu, never over it. */
+  .character-picker{
+    width:100%;
+    padding:9px;
+    overflow:hidden;
+  }
+  .character-picker-head{font-size:13px;margin-bottom:7px}
+  .character-list{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    gap:7px!important;
+    padding:2px 2px 5px!important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .character-list::-webkit-scrollbar{display:none}
+  .character-chip{
+    flex:0 0 64px!important;
+    width:64px!important;
+    min-width:64px!important;
+    height:66px!important;
+    padding:5px!important;
+    border-radius:12px!important;
+  }
+  .character-chip:first-child{margin-left:0}
+  .character-chip small{font-size:8px!important}
+
+  /* Bottom controls become a clean 3-part mobile bar. */
+  .bottom{padding:7px 6px;gap:6px;position:sticky;bottom:6px;z-index:50}
+  .mic{width:52px;min-width:52px;height:48px;border-radius:14px}
+  .encourage{font-size:12px;min-width:0;padding:9px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bottom-btn{min-width:76px;min-height:48px;padding:8px 7px;font-size:11px}
+
+  /* Vocabulary modal fills most of the phone without becoming cramped. */
+  .vocab-modal{padding:8px}
+  .vocab-dialog{width:100%;max-height:90dvh;padding:12px;border-radius:20px}
+  .vocab-title{font-size:17px}
+  .vocab-sub{font-size:11px}
+  .vocab-row{grid-template-columns:1fr 1fr!important;gap:7px;padding:9px}
+  .vocab-word{font-size:15px}
+  .vocab-ipa{font-size:11px}
+  .vocab-meaning{font-size:13px;grid-column:1 / 2}
+  .vocab-say{grid-column:2 / 3;justify-self:end;min-width:46px;min-height:40px}
+
+  /* Result and student-name dialogs */
+  #lessonResultOverlay,#studentNameModal,.adult-modal{padding:12px}
+  .lesson-result-card,.student-name-card,.adult-dialog{width:100%;max-width:390px;border-radius:22px;padding:22px 16px}
+  .lesson-result-avatar{font-size:52px}
+  .lesson-result-title{font-size:27px}
+  .lesson-result-name{font-size:20px}
+  .lesson-result-stars{font-size:34px}
+  .lesson-result-score{font-size:19px}
+  .lesson-result-actions{flex-direction:column}
+  .lesson-result-actions button{width:100%;min-height:50px}
+
+  /* Avoid iOS input zoom and keep touch targets comfortable. */
+  input,textarea,select{font-size:16px!important}
+  button{-webkit-tap-highlight-color:transparent}
+}
+
+/* ================= V11.1 — iPhone CLEAN UI ================= */
+@media(max-width:860px){
+  /* Mobile header: keep the three essential controls available.
+     Content = lesson editor, Student = reset/name flow, Gear = API settings. */
+  .header{min-height:64px;padding:8px 10px}
+  .brand{gap:7px;min-width:0}
+  .avatar-mini{font-size:28px}
+  .brand h1{font-size:20px;line-height:1.05;white-space:nowrap}
+  .brand p{font-size:9px}
+  .header > div:last-child{display:flex!important;align-items:center;gap:4px!important;flex:0 0 auto}
+  #lessonToggleBtn,#changeStudentBtn,.adult-btn{display:inline-flex!important;align-items:center;justify-content:center;min-width:44px!important;width:44px!important;height:44px!important;min-height:44px!important;padding:6px!important;border-radius:13px!important;font-size:0!important;line-height:1}
+  #lessonToggleBtn::after{content:'📚';font-size:20px}
+  #changeStudentBtn::after{content:'👤';font-size:20px}
+  .adult-btn::after{content:'⚙️';font-size:20px}
+
+  /* The desktop progress/lesson metadata is unnecessary on the phone.
+     Question count remains in the compact progress bar. */
+  .kid-strip{display:none!important}
+
+  /* Give the central character a balanced vertical stage. */
+  .main{min-height:0;display:flex;flex-direction:column;gap:8px}
+  .avatar-zone{flex:1 1 auto;min-height:330px;height:clamp(330px,44vh,470px);justify-content:center;align-items:center;padding:18px 0 8px}
+  .face{width:min(68vw,285px);max-width:285px;transform:translateY(5vh)}
+  .face.listening{transform:translateY(4vh)}
+
+  /* Remove the decorative greeting bubble completely. */
+  .bubble{display:none!important}
+
+  /* Character picker no longer occupies the same visual field as Enbu.
+     It becomes a slim horizontal selector below the character. */
+  .character-picker{order:2;position:relative;right:auto;top:auto;transform:none;margin:0 8px 2px;width:calc(100% - 16px);max-width:none;padding:6px 8px;border-radius:16px}
+  .character-picker-head{padding-bottom:4px;font-size:10px}
+  .character-list{gap:6px;padding-bottom:2px}
+  .character-chip{flex-basis:48px!important;width:48px!important;height:48px!important;border-radius:13px;font-size:20px}
+  .character-chip small{font-size:7px}
+
+  /* Keep the English/Vietnamese response card clearly separated from the face. */
+  .caption{flex:0 0 auto;margin-top:0;padding:12px 14px;border-radius:18px}
+  .en{font-size:21px;line-height:1.25}
+  .vi{font-size:17px;line-height:1.3}
+  .hint,.answer-hint{font-size:17px!important}
+}
+
+/* Very small iPhones */
+@media(max-width:380px){
+  .wrap{padding:6px;gap:6px}
+  .header{padding:7px 8px}
+  .brand h1{font-size:21px}
+  .brand p{font-size:9px}
+  .avatar-zone{height:275px;min-height:275px}
+  .face{width:205px}
+  .en{font-size:17px}
+  .vi,.answer-hint{font-size:16px}
+  .character-chip{flex-basis:60px!important;min-width:60px!important;width:60px!important}
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header class="header card">
+  <div class="brand"><div class="avatar-mini">🐰</div><div><h1>English Buffet</h1><p>with AI 🌈</p></div></div>
+  <div style="display:flex;align-items:center;gap:5px"><button id="lessonToggleBtn" type="button" class="small">📚 Nội dung</button><button id="changeStudentBtn" type="button">👤 Đổi học sinh</button><button id="parentToggleBtn" class="adult-btn" type="button" onclick="toggleAdultSettings()">⚙️ Adult</button></div>
+</header>
+
+<section class="lesson card">
+  <div class="lesson-title">📚 Nội dung buổi học</div>
+  <div id="lessonTitle" style="font-weight:900;font-size:12px;margin-bottom:5px">Today's English</div>
+  <textarea id="lesson" placeholder="Dán bài học vào đây...&#10;Ví dụ:&#10;| STT | Giáo viên (Question) | Câu trả lời mẫu |&#10;| 1 | What is your name? | My name is Nam. |"></textarea>
+  <div class="lesson-actions"><button id="lessonSaveBtn" class="small">💾 Lưu</button><button id="clearLessonBtn" class="small">🗑️ Xoá</button></div>
+  <div id="lessonCheck" class="lesson-check" data-state="idle">📚 Chưa kiểm tra nội dung bài học</div>
+</section>
+<section class="kid-strip card" aria-label="Thông tin học sinh và tiến độ">
+  <div class="kid-strip-main">
+    <div class="kid-student">👋 <span id="kidStudentName" class="kid-student-name">Chưa chọn học sinh</span></div>
+    <div class="kid-progress-line">
+      <div class="kid-progress-track"><div id="kidProgressFill" class="kid-progress-fill"></div></div>
+      <div id="kidProgressText" class="kid-progress-text">0 / 0</div>
+    </div>
+  </div>
+  <div class="kid-meta"><div id="kidLessonCount" class="kid-lesson-count">📋 0 câu</div><div id="kidScore" class="kid-score">⭐ Chưa có điểm</div></div>
+</section>
+
+<section class="status-wrap">
+  <button id="statusSummaryBtn" class="status-summary card" type="button" onclick="toggleStatusDetails()">
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-summary-title">Trạng thái</span>
+    <span class="status-summary-turn" id="statusTurn">⏳ Đang chờ…</span>
+    <span class="status-chevron" id="statusChevron">⌄</span>
+  </button>
+
+  <div id="statusDetails" class="status-details card" aria-hidden="true">
+    <div class="status-detail-head">
+      <b>🔎 Chi tiết trạng thái</b>
+      <button type="button" class="status-close" onclick="toggleStatusDetails()">✕</button>
+    </div>
+    <div class="status-grid">
+      <div id="diagSecure" class="diag"><b>HTTPS</b>Chưa kiểm tra</div>
+      <div id="diagMic" class="diag"><b>Microphone</b>Chưa bật</div>
+      <div id="diagWs" class="diag"><b>WebSocket</b>Chưa mở</div>
+      <div id="diagGemini" class="diag"><b>Gemini</b>Chưa kết nối</div>
+      <div id="diagTurn" class="diag"><b>Turn</b>Đang chờ</div>
+      <div id="diagAudio" class="diag"><b>Audio</b>0 chunks • 0.00s</div>
+    </div>
+    <div id="diagStatus" class="status-now">Chưa kết nối</div>
+  </div>
+</section>
+
+  <section class="character-picker card" aria-label="Chọn nhân vật Enbu">
+    <div class="character-picker-head"><span>🐾 Chọn Enbu</span><span id="characterName">Bunny</span></div>
+    <div class="character-list" id="characterList">
+      <button class="character-chip selected" type="button" data-character="bunny" aria-label="Bunny">🐰<small>Bunny</small></button>
+      <button class="character-chip" type="button" data-character="cat" aria-label="Kitty">🐱<small>Kitty</small></button>
+      <button class="character-chip" type="button" data-character="panda" aria-label="Panda">🐼<small>Panda</small></button>
+      <button class="character-chip" type="button" data-character="frog" aria-label="Froggy">🐸<small>Froggy</small></button>
+      <button class="character-chip" type="button" data-character="lion" aria-label="Lion">🦁<small>Lion</small></button>
+      <button class="character-chip" type="button" data-character="tiger" aria-label="Tiger">🐯<small>Tiger</small></button>
+      <button class="character-chip" type="button" data-character="penguin" aria-label="Penguin">🐧<small>Penguin</small></button>
+      <button class="character-chip" type="button" data-character="dog" aria-label="Puppy">🐶<small>Puppy</small></button>
+      <button class="character-chip" type="button" data-character="dragon" aria-label="Dragon">🐲<small>Dragon</small></button>
+      <button class="character-chip" type="button" data-character="hippo" aria-label="Hippo">🦛<small>Hippo</small></button>
+      <button class="character-chip" type="button" data-character="chick" aria-label="Chick">🐥<small>Chick</small></button>
+      <button class="character-chip" type="button" data-character="koala" aria-label="Koala">🐨<small>Koala</small></button>
+    </div>
+  </section>
+
+<main class="main">
+  <div class="avatar-zone">
+    <div class="bubble" aria-hidden="true"></div>
+    <div id="emotionLabel" class="emotion">😊 I’m ready!</div>
+    <div id="face" class="face idle character-bunny">
+      <div class="ear l"></div><div class="ear r"></div>
+      <div class="brow left"></div><div class="brow right"></div>
+      <div class="cheek l"></div><div class="cheek r"></div>
+      <div class="eyes"><div class="eye left"><div class="pupil left"></div></div><div class="eye right"><div class="pupil right"></div></div></div>
+      <div id="mouth" class="mouth neutral small"><span class="mouth-inner"></span><span class="tongue"></span></div><div class="nose"></div>
+      <div class="expression-fx fx-left"></div><div class="expression-fx fx-right"></div>
+      <div id="characterBadge" class="character-badge">🐰 Bunny</div>
+    </div>
+  </div>
+
+  <section class="caption card">
+    <div id="subtitleEn" class="en">Enbu’s English will appear here.</div>
+    <div id="subtitleVi" class="vi">Bản dịch tiếng Việt sẽ hiện ở đây.</div>
+    <div id="hintText" class="hint">⭐ Nghe – suy nghĩ – nói từng câu ngắn.</div>
+  </section>
+
+  <div class="controls">
+    <button class="emotion-btn" onclick="setState('listening')">👂 Listen</button>
+    <button class="emotion-btn" onclick="setState('thinking')">🤔 Think</button>
+    <button class="emotion-btn" onclick="setState('happy')">😄 Happy</button>
+    <button class="emotion-btn" onclick="setState('surprised')">😮 Wow</button>
+    <button class="emotion-btn" onclick="setState('wink')">😉 Nice</button>
+  </div>
+
+  <div id="log" class="debug">Chờ hoạt động...</div>
+</main>
+
+<footer class="bottom card">
+  <button id="micBtn" class="mic" onclick="toggleMic()" disabled>🎤</button>
+  <div id="scoreDisplay" class="encourage">⭐ Your performance</div>
+  <button class="bottom-btn" type="button" onclick="openVocabulary()">📖 Từ vựng</button>
+</footer>
+
+<div id="vocabModal" class="vocab-modal" aria-hidden="true">
+  <div class="vocab-dialog card">
+    <div class="vocab-head">
+      <div>
+        <div class="vocab-title">📖 Từ vựng của bài học</div>
+        <div class="vocab-sub">Enbu chọn các từ quan trọng nhất trong nội dung bé đang học.</div>
+      </div>
+      <button class="vocab-close" type="button" onclick="closeVocabulary()">✕</button>
+    </div>
+    <div id="vocabContent">
+      <div class="vocab-loading">⏳ Đang chuẩn bị từ vựng…</div>
+    </div>
+  </div>
+</div>
+
+<div id="adultModal" class="adult-modal" aria-hidden="true">
+  <div class="adult-dialog card">
+    <div class="adult-head"><div><div class="adult-title">🔐 Adult setting</div><div style="font-size:11px;color:#8a7795;margin-top:2px">Nhập Gemini API key tại đây.</div></div><button class="adult-close" type="button" onclick="toggleAdultSettings()">✕</button></div>
+    <input id="apiKey" class="api-input" type="password" autocomplete="off" placeholder="Gemini API key">
+    <button id="connectBtn" class="connect" onclick="connect()">Kết nối Enbu</button>
+    <button id="iosAudioBtn" style="display:none;margin-top:6px;width:100%" class="small" onclick="unlockIOSAudio()">🔊 Bật âm thanh iPhone</button>
+    <button id="testBtn" style="display:none;margin-top:6px;width:100%" class="small" onclick="playLocalAudioTest();sendTestText()" disabled>🔎 Test kết nối</button>
+  </div>
+</div>
+
+<div id="parentPanel" class="hidden"></div>
+<div id="progress" class="hidden">0</div><div id="sessionBadge" class="hidden">Offline</div><div id="vocab" class="hidden"></div>
+<!-- V10.18: student lesson completion -->
+<div id="lessonResultOverlay" aria-hidden="true">
+  <div class="lesson-result-card">
+    <div id="lessonResultAvatar" class="lesson-result-avatar">🐰</div>
+    <div id="lessonResultName" class="lesson-result-name">🌟 Học sinh</div>
+    <h2 class="lesson-result-title">Great job!</h2>
+    <div id="lessonResultStars" class="lesson-result-stars">☆☆☆☆☆</div>
+    <div id="lessonResultScore" class="lesson-result-score">Your performance 0/0</div>
+    <div id="lessonResultNote" class="lesson-result-note">You finished today's lesson! 🎉</div>
+    <div class="lesson-result-actions">
+      <button id="finishLessonBtn" type="button">✅ Kết thúc bài học</button>
+      <button id="changeStudentFromResultBtn" type="button">👤 Đổi học sinh</button>
+    </div>
+  </div>
+</div>
+
+<div id="studentNameModal" aria-hidden="true">
+  <div class="student-name-card">
+    <h3>👋 What is your name?</h3>
+    <p>Tell Enbu your name before we start.</p>
+    <input id="studentNameInput" type="text" maxlength="40"
+           autocomplete="off" placeholder="Ví dụ: Hyo">
+    <div class="student-name-actions">
+      <button id="cancelStudentBtn" type="button">Huỷ</button>
+      <button id="startStudentBtn" type="button">🚀 Bắt đầu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+
+
+const MODEL = "gemini-3.1-flash-live-preview";
+const VOICE = "Kore";
+const WS_ENDPOINT =
+  "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent";
+
+let ws = null;
+let localStream = null;
+let audioCtx = null;
+let inputSource = null;
+let processor = null;
+let silentGain = null;
+let connected = false;
+let micOn = false;
+let speaking = false;
+let nextPlayTime = 0;
+let scheduledTimers = [];
+let outputPlaying = 0;
+let lessonText = "";
+let lastEnglishSubtitle = "";
+let translationBusy = false;
+let translationCache = new Map();
+let translationInFlight = new Map();
+let pendingTranslationEnglish = "";
+let translationTimer = null;
+let lessonQuestions = [];
+let currentQuestionIndex = -1;
+let lessonPhase = "idle";
+let studentAnswerTranscript = "";
+let studentAnswerQuestionIndex = -1;
+let answeredCount = 0;
+let correctCount = 0;
+let scoreStars = 0; // asking | waiting | evaluating | finished
+let studentTurnSeen = false;
+let questionAudioTurn = false;
+let nextQuestionNotBefore = 0;
+let nextQuestionTimer = null;
+let activeQuestionIndex = -1;
+let questionRequestSent = false;
+let evaluationFinalized = false;
+let reconnectingStudentSession = false;
+let geminiSocketGeneration = 0;
+let lessonPrepared=false;
+let lessonPreparationId=0;
+let selectedCharacter="bunny";
+
+// Gemini Live can deliver turnComplete before the final model audio frame.
+// Keep a short drain/grace period so late audio cannot arrive after the
+// lesson engine has already moved on.
+let turnDrainTimer = null;
+let lastAudioChunkAt = 0;
+const TURN_DRAIN_GRACE_MS = 1200;
+
+const face = document.getElementById("face");
+const mouth = document.getElementById("mouth");
+const statusEl = document.getElementById("status") || document.getElementById("diagStatus") || null;
+const logEl = document.getElementById("log");
+const micBtn = document.getElementById("micBtn");
+const connectBtn = document.getElementById("connectBtn");
+const pupils = [...document.querySelectorAll(".pupil")];
+const eyes = [...document.querySelectorAll(".eye")];
+const iosAudioBtn = document.getElementById("iosAudioBtn");
+const testBtn = document.getElementById("testBtn");
+const lessonEl = document.getElementById("lesson");
+const subtitleEl = document.getElementById("subtitle") || document.getElementById("subtitleEn") || null;
+const subtitleEnEl = document.getElementById("subtitleEn") || subtitleEl;
+const subtitleViEl = document.getElementById("subtitleVi") || null;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isSecure = window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+
+if (isIOS) iosAudioBtn.style.display = "block";
+if (!isSecure) log("⚠️ Trang không phải HTTPS/localhost. iPhone có thể chặn microphone.");
+if (!navigator.mediaDevices?.getUserMedia) log("❌ Trình duyệt không cung cấp getUserMedia.");
+if (document.getElementById("subtitleVi")) renderVietnameseTranslation("Bản dịch tiếng Việt sẽ hiện ở đây.");
+
+function log(s){
+  const t = new Date().toLocaleTimeString();
+  if(!logEl) return;
+  logEl.textContent = `[${t}] ${s}\n` + logEl.textContent;
+}
+function status(s){
+  if(statusEl) statusEl.textContent=s;
+  const diagText=document.getElementById("diagStatus");
+  if(diagText) diagText.textContent=s;
+  const turnEl=document.getElementById("statusTurn");
+  if(turnEl){
+    const lower=String(s||"").toLowerCase();
+    if(lower.includes("đang nghe") || lower.includes("listening") || lower.includes("học sinh")) {
+      turnEl.textContent="🎤 Lượt của học sinh";
+    }else if(lower.includes("đang nói") || lower.includes("speaking") || lower.includes("enbu")) {
+      turnEl.textContent="🗣️ Enbu đang nói";
+    }else{
+      turnEl.textContent=s || "⏳ Đang chờ…";
+    }
+  }
+  updateOverallStatus();
+  log(s);
+}
+
+
+function toggleStatusDetails(){
+  const box=document.getElementById("statusDetails");
+  const btn=document.getElementById("statusSummaryBtn");
+  if(!box || !btn) return;
+  const open=!box.classList.contains("open");
+  box.classList.toggle("open",open);
+  btn.classList.toggle("open",open);
+  box.setAttribute("aria-hidden",open ? "false" : "true");
+}
+
+function updateOverallStatus(){
+  const ids=["diagSecure","diagMic","diagWs","diagGemini"];
+  const els=ids.map(id=>document.getElementById(id)).filter(Boolean);
+  const allOk=els.length===4 && els.every(el=>el.dataset.state==="ok");
+  const anyError=els.some(el=>el.dataset.state==="error");
+
+  const summary=document.getElementById("statusSummaryBtn");
+  const dot=document.getElementById("statusDot");
+  if(summary){
+    summary.dataset.state=allOk ? "ok" : (anyError ? "error" : "busy");
+  }
+
+  const turnEl=document.getElementById("statusTurn");
+  if(turnEl){
+    const turn=String(document.getElementById("diagTurn")?.textContent || "").trim();
+    turnEl.textContent = turn || "⏳ Đang chờ…";
+  }
+}
+
+function diag(id,text,state="info"){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=text;
+  el.dataset.state=state;
+  updateOverallStatus();
+}
+
+function updateDiagCounters(){
+  diag("diagAudio", `${diagAudioChunks} chunks • ${diagAudioSeconds.toFixed(2)}s`, diagAudioChunks ? "ok" : "info");
+}
+
+
+
+
+function renderVietnameseTranslation(text){
+  const vi=String(text||"").trim();
+  const el=document.getElementById("subtitleVi");
+  if(!el){
+    log("❌ Không tìm thấy #subtitleVi trong giao diện.");
+    return;
+  }
+
+  el.textContent = vi ? "🇻🇳 " + vi : "🇻🇳 Không có bản dịch.";
+  // Make the result visibly present even if another CSS rule is introduced later.
+  el.style.display="block";
+  el.style.visibility="visible";
+  el.style.opacity="1";
+  el.style.minHeight="28px";
+  el.style.color="#986a28";
+  el.style.background="#fff9df";
+  el.style.padding="6px 8px";
+  el.style.borderRadius="9px";
+  el.style.whiteSpace="normal";
+
+  log(`✅ Subtitle VI render: ${vi.length} chars`);
+}
+
+function setState(state){
+  const states=["idle","listening","thinking","speaking","happy","excited","love","surprised","confused","sleepy","wink"];
+  states.forEach(x=>face.classList.remove(x));
+  face.classList.add(states.includes(state)?state:"idle");
+  if(mouth){
+    mouth.classList.remove("neutral","small","open","wide","smile","ooh","tongue-out","sad");
+    const mouthState={
+      idle:"small",listening:"small",thinking:"ooh",speaking:"open",happy:"smile",
+      excited:"wide",love:"smile",surprised:"ooh",confused:"sad",sleepy:"small",wink:"smile"
+    }[state]||"small";
+    mouth.classList.add(mouthState);
+  }
+
+  const messages={
+    idle:"😊 I’m ready!",
+    listening:"👂 I’m listening…",
+    thinking:"🤔 Hmm… let me think!",
+    speaking:"🗣️ Enbu is speaking!",
+    happy:"😄 Great job!",
+    excited:"🤩 Wow!",
+    love:"🥰 Your performance",
+    surprised:"😮 Oh!",
+    confused:"😕 Let’s try again!",
+    sleepy:"😴 One moment…",
+    wink:"😉 Nice!"
+  };
+  status(messages[state]||messages.idle);
+  const label=document.getElementById("emotionLabel");
+  if(label) label.textContent=messages[state]||messages.idle;
+}
+
+function applyFaceFromAudio(rms){
+  // Drive both mouth AND eyebrows from the real audio amplitude.
+  // The brows move subtly so Enbu feels like it is actively talking,
+  // instead of looking like a static face with only a moving mouth.
+  const level=Math.max(0,Math.min(1,rms*8.5));
+  const open=Math.min(.98,Math.max(.12,level));
+  mouth.style.setProperty("--mouth-open",open.toFixed(2));
+  if(!speaking) return;
+
+  face.classList.add("speaking");
+  const scale=Math.min(1.05,1+level*0.035);
+  face.style.transform=`translateY(-2px) scale(${scale})`;
+
+  // Small alternating eyebrow movement, synchronized with speech volume.
+  // Keep it deliberately subtle for a friendly, natural expression.
+  const pulse=Math.sin(performance.now()/105) * (1.2 + level*2.6);
+  const lift=-(0.5 + level*2.2);
+  face.style.setProperty("--brow-left-y",`${(lift + pulse*0.32).toFixed(2)}px`);
+  face.style.setProperty("--brow-right-y",`${(lift - pulse*0.28).toFixed(2)}px`);
+  face.style.setProperty("--brow-left-rot",`${(pulse*0.9).toFixed(2)}deg`);
+  face.style.setProperty("--brow-right-rot",`${(-pulse*0.8).toFixed(2)}deg`);
+
+  if(level>.72){
+    mouth.classList.add("wide");
+    mouth.classList.remove("open");
+  }else if(level>.22){
+    mouth.classList.add("open");
+    mouth.classList.remove("wide");
+  }else{
+    mouth.classList.remove("open","wide");
+  }
+}
+
+function resetFaceTransform(){
+  if(speaking) return;
+  face.style.transform="";
+  face.style.removeProperty("--brow-left-y");
+  face.style.removeProperty("--brow-right-y");
+  face.style.removeProperty("--brow-left-rot");
+  face.style.removeProperty("--brow-right-rot");
+}
+
+// Xiaozhi-style animation principles:
+// - independent eyes + pupils + brows
+// - automatic blink
+// - subtle eye wandering
+// - expression-specific eye geometry
+// - small idle motion instead of a static emoji face
+function randomLook(){
+  if(!face || speaking) return;
+  const x=(Math.random()*18-9).toFixed(1);
+  const y=(Math.random()*8-4).toFixed(1);
+  pupils.forEach(p=>p.style.transform=`translate(${x}px,${y}px)`);
+  setTimeout(()=>{
+    pupils.forEach(p=>p.style.transform="");
+  },650);
+}
+function doBlink(){
+  if(speaking || face.classList.contains("sleepy")) return;
+  eyes.forEach(e=>e.classList.add("blink"));
+  setTimeout(()=>eyes.forEach(e=>e.classList.remove("blink")),120);
+}
+
+setInterval(()=>{
+  if(!speaking && Math.random()<0.40) randomLook();
+},2300);
+
+setInterval(()=>{
+  if(!speaking && Math.random()<0.18) doBlink();
+},1400);
+
+// Small idle "breathing" motion for a living mascot.
+setInterval(()=>{
+  if(!speaking && face.classList.contains("idle")){
+    face.classList.add("breathe");
+    setTimeout(()=>face.classList.remove("breathe"),850);
+  }
+},3200);
+
+
+function base64FromInt16(int16){
+  const bytes = new Uint8Array(int16.length * 2);
+  const view = new DataView(bytes.buffer);
+  for(let i=0;i<int16.length;i++) view.setInt16(i*2, int16[i], true);
+  let binary="";
+  const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk){
+    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i+chunk, bytes.length)));
+  }
+  return btoa(binary);
+}
+
+function downsampleTo16k(input, inputRate){
+  if(inputRate === 16000){
+    const out = new Int16Array(input.length);
+    for(let i=0;i<input.length;i++){
+      const s=Math.max(-1,Math.min(1,input[i]));
+      out[i]=s<0?s*0x8000:s*0x7fff;
+    }
+    return out;
+  }
+  const ratio=inputRate/16000;
+  const newLen=Math.round(input.length/ratio);
+  const out=new Int16Array(newLen);
+  let offset=0;
+  for(let i=0;i<newLen;i++){
+    const next=Math.min(input.length, Math.round((i+1)*ratio));
+    let sum=0, count=0;
+    for(let j=offset;j<next;j++){ sum+=input[j]; count++; }
+    const s=Math.max(-1,Math.min(1,count?sum/count:0));
+    out[i]=s<0?s*0x8000:s*0x7fff;
+    offset=next;
+  }
+  return out;
+}
+
+
+async function initPcmPlayer(){
+  if(pcmPlayerReady) return;
+  if(!audioCtx) throw new Error("AudioContext chưa sẵn sàng.");
+  if(!audioCtx.audioWorklet) return false;
+
+  const workletCode = `
+    class EnbuPCMPlayer extends AudioWorkletProcessor {
+      constructor(){
+        super();
+        this.queue=[];
+        this.current=null;
+        this.index=0;
+        this.ended=false;
+        this.port.onmessage=(e)=>{
+          const m=e.data||{};
+          if(m.type==="chunk"){
+            this.queue.push(m.samples);
+            this.ended=false;
+          }else if(m.type==="turnComplete"){
+            this.ended=true;
+            this._maybeDrain();
+          }else if(m.type==="clear"){
+            this.queue=[];
+            this.current=null;
+            this.index=0;
+            this.ended=false;
+          }
+        };
+      }
+      _maybeDrain(){
+        if(this.ended && !this.current && this.queue.length===0){
+          this.port.postMessage({type:"drained"});
+        }
+      }
+      process(_inputs, outputs){
+        const out=outputs[0][0];
+        out.fill(0);
+
+        // Output context rate is normally 48 kHz on iPhone Safari.
+        // Incoming Gemini PCM is 24 kHz. Linear interpolation resamples it.
+        const inRate=24000;
+        const outRate=sampleRate;
+        const step=inRate/outRate;
+
+        for(let i=0;i<out.length;i++){
+          if(!this.current || this.index>=this.current.length){
+            this.current=this.queue.shift()||null;
+            this.index=0;
+            if(!this.current){
+              out[i]=0;
+              continue;
+            }
+          }
+          const pos=this.index;
+          const i0=Math.floor(pos);
+          const frac=pos-i0;
+          const a=this.current[i0]||0;
+          const b=this.current[i0+1]||a;
+          out[i]=(a*(1-frac)+b*frac);
+          this.index+=step;
+          if(this.index>=this.current.length){
+            this.current=null;
+            this.index=0;
+          }
+        }
+
+        this._maybeDrain();
+        return true;
+      }
+    }
+    registerProcessor("enbuf-pcm-player", EnbuPCMPlayer);
+  `;
+
+  const blob=new Blob([workletCode],{type:"application/javascript"});
+  pcmPlayerUrl=URL.createObjectURL(blob);
+  try{
+    await audioCtx.audioWorklet.addModule(pcmPlayerUrl);
+  }catch(err){
+    pcmPlayerUrl=null;
+    return false;
+  }
+
+  pcmPlayerNode=new AudioWorkletNode(audioCtx,"enbuf-pcm-player",{
+    numberOfInputs:0,
+    numberOfOutputs:1,
+    outputChannelCount:[1]
+  });
+  pcmPlayerNode.connect(audioCtx.destination);
+  pcmPlayerNode.port.onmessage=(e)=>{
+    if(e.data?.type==="drained"){
+      outputPlaying=0;
+      enbufOutputGate=false;
+      speaking=false;
+
+      if(turnEnded){
+        if(lessonPhase==="evaluating" && studentTurnSeen){
+          finalizeStudentTurnOnce();
+        }else{
+          turnEnded=false;
+          setState("idle");
+        }
+      }
+    }
+  };
+  pcmPlayerReady=true;
+  return true;
+}
+
+
+function cleanCell(text){
+  return String(text || "").replace(/<br\s*\/?>/gi," ").replace(/&nbsp;/gi," ")
+    .replace(/\s+/g," ").trim();
+}
+
+function parseLessonQuestions(text){
+  const rows=String(text||"").split(/\r?\n/);
+  const qs=[];
+
+  // A) Markdown table: one numbered row = one teaching prompt.
+  for(const raw of rows){
+    const line=raw.trim();
+    if(!line.startsWith("|")) continue;
+    const cells=line.split("|").map(cleanCell);
+    if(cells.length<3) continue;
+
+    const stt=cells[0].replace(/\D/g,"");
+    const teacher=cells[1]||"";
+    const model=cells[2]||"";
+    const student=cells[3]||"";
+    if(!stt || !teacher || /^-+$/.test(teacher) ||
+       /teacher.*question/i.test(teacher) || /^STT$/i.test(cells[0])) continue;
+
+    qs.push({number:Number(stt),question:teacher,modelAnswer:model,studentTemplate:student});
+  }
+  if(qs.length) return qs;
+
+  // B) Numbered lesson blocks. This is important for classroom scripts such as:
+  // 1
+  // Good morning class! How are you today?
+  // Good morning teacher! I am very happy.
+  // 2
+  // Who is absent today?
+  // Nobody is absent today.
+  // The first non-empty line after each number is the teacher's prompt.
+  // Both questions (?) and commands/exclamations (!) are valid prompts.
+  for(let i=0;i<rows.length;i++){
+    const numberMatch=rows[i].trim().match(/^(\d+)[.)]?$/);
+    if(!numberMatch) continue;
+
+    let j=i+1;
+    while(j<rows.length && !cleanCell(rows[j])) j++;
+    if(j>=rows.length) continue;
+
+    const prompt=cleanCell(rows[j]);
+    if(!prompt) continue;
+
+    // A classroom prompt may be a question or an imperative/exclamation.
+    // Accept either ? or !, including mixed endings such as "...?" / "...!".
+    if(/[?!]$/.test(prompt)){
+      let modelAnswer="";
+      let k=j+1;
+      while(k<rows.length && !cleanCell(rows[k])) k++;
+      // Capture the next line as the sample answer only when it is not the
+      // beginning of another numbered block and does not look like a prompt.
+      if(k<rows.length && !/^\d+[.)]?$/.test(rows[k].trim())){
+        const candidate=cleanCell(rows[k]);
+        if(candidate && !/[?!]$/.test(candidate)) modelAnswer=candidate;
+      }
+      qs.push({number:Number(numberMatch[1]),question:prompt,modelAnswer,studentTemplate:""});
+    }
+  }
+  if(qs.length) return qs;
+
+  // C) Number + prompt on the same line: "1. Open your book!"
+  for(const raw of rows){
+    const m=raw.trim().match(/^(\d+)[.)]\s+(.+)$/);
+    if(!m) continue;
+    const prompt=cleanCell(m[2]);
+    if(!prompt || !/[?!]$/.test(prompt)) continue;
+    qs.push({number:Number(m[1]),question:prompt,modelAnswer:"",studentTemplate:""});
+  }
+  if(qs.length) return qs;
+
+  // D) Plain text: count prompt-like lines ending in ? or !.
+  // This fallback is intentionally conservative to avoid counting ordinary
+  // vocabulary/answer lines as questions.
+  const plain=rows.map(cleanCell).filter(Boolean);
+  for(const line of plain){
+    if(/[?!]$/.test(line)){
+      qs.push({number:qs.length+1,question:line,modelAnswer:"",studentTemplate:""});
+    }
+  }
+  return qs;
+}
+function updateKidUI(){
+  const total=Array.isArray(lessonQuestions)?lessonQuestions.length:0;
+  const idx=(typeof currentQuestionIndex==="number") ? currentQuestionIndex : -1;
+  const answered=(typeof answeredCount==="number") ? answeredCount : 0;
+  const correct=(typeof correctCount==="number") ? correctCount : 0;
+  const name=(window.currentStudentName||"").trim();
+  const nameEl=document.getElementById("kidStudentName");
+  const fill=document.getElementById("kidProgressFill");
+  const text=document.getElementById("kidProgressText");
+  const score=document.getElementById("kidScore");
+  if(nameEl) nameEl.textContent=name || "Chưa chọn học sinh";
+  const shown=Math.min(total, Math.max(0, answered));
+  if(text) text.textContent=total ? `${shown} / ${total}` : "0 / 0";
+  if(fill) fill.style.width=(total ? (shown/total*100) : 0)+"%";
+  if(score){
+    if(answered) score.textContent=`⭐ ${correct}/${answered} đúng`;
+    else score.textContent="⭐ Chưa có điểm";
+  }
+}
+function updateLessonProgress(){
+  const total=lessonQuestions.length;
+  const current=currentQuestionIndex>=0 ? currentQuestionIndex+1 : 0;
+  if(progressEl) progressEl.textContent=total
+    ? (current ? `Question ${current} / ${total}` : `${total} questions ready`)
+    : "0 questions";
+  if(lessonTitleEl) lessonTitleEl.textContent=total
+    ? (current ? `Question ${current} / ${total}` : `Ready • ${total} questions`)
+    : "Today's English";
+  updateKidUI();
+}
+
+function askCurrentQuestion(){
+  if(!connected || !ws || ws.readyState!==WebSocket.OPEN) return false;
+  const q=lessonQuestions[currentQuestionIndex];
+  if(!q) return false;
+
+  // Hard guard: never send the same worksheet question twice.
+  if(questionRequestSent && activeQuestionIndex===currentQuestionIndex){
+    log(`🛑 Bỏ qua lần gọi lặp Q${currentQuestionIndex+1}.`);
+    return false;
+  }
+
+  questionRequestSent=true;
+  activeQuestionIndex=currentQuestionIndex;
+  evaluationFinalized=false;
+
+  lessonPhase="asking";
+  studentTurnSeen=false;
+  questionAudioTurn=true;
+  studentAnswerTranscript="";
+  studentAnswerQuestionIndex=-1;
+  nextQuestionNotBefore=performance.now()+6500;
+  lastAudioChunkAt=performance.now();
+  if(turnDrainTimer){ clearTimeout(turnDrainTimer); turnDrainTimer=null; }
+  diagAudioChunks=0;
+  diagAudioSeconds=0;
+  updateDiagCounters();
+  turnEnded=false;
+  enbufOutputGate=true;
+  updateLessonProgress();
+  updateAnswerHint();
+
+  const prompt =
+    "You are the teacher in an English lesson for a primary-school child. " +
+    "Speak the exact question below ONCE and only once. " +
+    "Do not repeat it. Do not add a greeting, explanation, answer, encouragement, or another question. " +
+    "Keep the wording exactly as written. Use friendly, clear pronunciation. " +
+    `EXACT QUESTION: "${q.question}"`;
+
+  ws.send(JSON.stringify({
+    clientContent:{
+      turns:[{role:"user",parts:[{text:prompt}]}],
+      turnComplete:true
+    }
+  }));
+
+  status(`🗣️ Enbu: ${q.question}`);
+  return true;
+}
+
+
+function prepareLessonQuestions(reason="start"){
+  const id=++lessonPreparationId;
+  lessonPrepared=false;
+  lessonText=lessonEl?.value?.trim() || lessonText || "";
+  lessonQuestions=parseLessonQuestions(lessonText);
+  resetAnswerScore();
+  currentQuestionIndex=-1;
+  activeQuestionIndex=-1;
+  questionRequestSent=false;
+  evaluationFinalized=false;
+  lessonPhase="idle";
+  studentTurnSeen=false;
+  questionAudioTurn=false;
+  updateLessonProgress();
+
+  const check=document.getElementById("lessonCheck");
+  const countEl=document.getElementById("kidLessonCount");
+  if(check) {
+    check.dataset.state=lessonQuestions.length ? "ready" : "error";
+    check.textContent=lessonQuestions.length
+      ? `✅ Đã kiểm tra: ${lessonQuestions.length} câu hỏi sẵn sàng cho buổi học`
+      : "⚠️ Chưa tìm thấy câu hỏi trong nội dung bài học";
+  }
+  if(countEl) countEl.textContent=`📋 ${lessonQuestions.length} câu`;
+
+  if(!lessonQuestions.length){
+    lessonPrepared=false;
+    if(hintEl) hintEl.textContent="Hãy dùng bảng có cột “Giáo viên (Question)” hoặc các dòng 1. 2. 3. ...";
+    log("⚠️ Lesson check: không tìm thấy câu hỏi.");
+    return false;
+  }
+
+  lessonPrepared=true;
+  log(`🔎 Lesson check (${reason}): tìm thấy ${lessonQuestions.length} câu hỏi.`);
+  log(`📊 Điểm sẽ tính trên toàn bộ ${lessonQuestions.length} câu hỏi của bài.`);
+  if(hintEl) hintEl.textContent=`⭐ Enbu đã kiểm tra bài: ${lessonQuestions.length} câu. Bây giờ hãy sẵn sàng!`;
+  updateAnswerHint();
+  return true;
+}
+
+function updateAnswerHint(){
+  if(!hintEl) return;
+  const q = (Array.isArray(lessonQuestions) && currentQuestionIndex>=0) ? lessonQuestions[currentQuestionIndex] : null;
+  if(!q){
+    hintEl.textContent = lessonQuestions.length ? "⭐ Nghe – suy nghĩ – nói từng câu ngắn." : "⭐ Hãy dán nội dung bài học để Enbu tạo gợi ý trả lời.";
+    return;
+  }
+  const sample = String(q.modelAnswer || q.studentTemplate || "").trim();
+  if(sample){
+    hintEl.innerHTML = `💡 Gợi ý trả lời: <span class="answer-hint">${escapeHtml(sample)}</span>`;
+  }else{
+    hintEl.textContent = "💡 Gợi ý trả lời: Hãy dùng mẫu câu và từ vựng trong bài học.";
+  }
+}
+
+function startLessonEngine(){
+  // Preflight is deliberately separated from asking Q1. The lesson must be
+  // parsed and its total question count established before any child-facing turn.
+  if(!prepareLessonQuestions("bắt đầu hội thoại")) return false;
+
+  currentQuestionIndex=0;
+  lessonPhase="idle";
+  updateLessonProgress();
+  log(`🚦 Bắt đầu bài học: Q1/${lessonQuestions.length} sau khi kiểm tra nội dung.`);
+  status(`📚 Đã kiểm tra ${lessonQuestions.length} câu — chuẩn bị câu 1.`);
+  setTimeout(()=>{
+    if(lessonPrepared && connected && ws && ws.readyState===WebSocket.OPEN && currentQuestionIndex===0){
+      askCurrentQuestion();
+    }
+  },450);
+  return true;
+}
+
+
+function finalizeStudentTurnOnce(){
+  if(evaluationFinalized) return;
+  if(!studentTurnSeen || lessonPhase!=="evaluating") return;
+
+  evaluationFinalized=true;
+  recordStudentAnswer();
+  turnEnded=false;
+  moveToNextQuestion();
+}
+
+function moveToNextQuestion(){
+  if(lessonPhase==="finished") return;
+
+  const waitMs=Math.max(0,nextQuestionNotBefore-performance.now());
+  if(waitMs>0){
+    if(nextQuestionTimer) clearTimeout(nextQuestionTimer);
+    nextQuestionTimer=setTimeout(()=>{
+      nextQuestionTimer=null;
+      moveToNextQuestion();
+    },waitMs);
+    status("⏳ Enbu đang chờ một chút trước câu tiếp theo…");
+    return;
+  }
+
+  currentQuestionIndex++;
+  if(currentQuestionIndex>=lessonQuestions.length){
+    // Never declare completion unless every worksheet question has actually
+    // produced a recorded student turn. This prevents a premature result when
+    // a WebSocket closes during/just after the final answer.
+    if(answeredCount < lessonQuestions.length){
+      log(`⚠️ Chưa kết thúc: mới ghi nhận ${answeredCount}/${lessonQuestions.length} câu. Chờ câu trả lời còn thiếu.`);
+      currentQuestionIndex=Math.max(0,lessonQuestions.length-1);
+      lessonPhase="waiting";
+      questionRequestSent=false;
+      activeQuestionIndex=-1;
+      return;
+    }
+    lessonPhase="finished";
+    scoreStars=calculateScoreStars();
+    renderStars();
+    renderScoreDisplay(`🎉 ${scoreStars}/5 stars — Great job!`);
+    status("🎉 Great job! You finished today's lesson!");
+    setState("happy");
+    return;
+  }
+
+  updateLessonProgress();
+  questionRequestSent=false;
+  activeQuestionIndex=-1;
+  log(`➡️ Lesson Engine chủ động chuyển sang câu ${currentQuestionIndex+1}/${lessonQuestions.length}.`);
+  askCurrentQuestion();
+}
+
+async function connect(){
+  if(connected){
+    if(reconnectingStudentSession) return;
+    disconnect();
+    return;
+  }
+
+  const key=document.getElementById("apiKey").value.trim();
+  lessonText = lessonEl.value.trim();
+  if(!key){ status("Bạn chưa nhập Gemini API key."); return; }
+  if(!lessonText){
+    status("📚 Hãy nhập nội dung buổi học trước khi kết nối.");
+    lessonEl.focus();
+    return;
+  }
+
+  // Google AI Studio hiện có thể cấp Auth key dạng AQ....
+  // Không được ép key phải bắt đầu bằng "AIza".
+  // Gemini Live native WebSocket nhận API key qua ?key=...
+
+  connectBtn.disabled=true;
+  wsReceiveChain=Promise.resolve();
+  wsMessageSeq=0;
+  currentModelTurnId++;
+  enbufOutputGate=false;
+  turnEnded=false;
+  nextQuestionNotBefore=0;
+  if(nextQuestionTimer){ clearTimeout(nextQuestionTimer); nextQuestionTimer=null; }
+
+  try{
+    diag("diagSecure", isSecure ? "HTTPS ✅" : "Không an toàn ❌", isSecure ? "ok" : "error");
+    diag("diagMic","Đang xin quyền…","busy");
+    diag("diagWs","Chưa mở","info");
+    diag("diagGemini","Đang kết nối…","busy");
+    status("1/4 Đang khởi động microphone + âm thanh…");
+
+    if (!isSecure) {
+      throw new Error("iPhone cần mở trang bằng HTTPS (hoặc localhost). Không dùng file:// để chạy microphone.");
+    }
+
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    await audioCtx.resume();
+
+    if(!localStream){
+      localStream=await navigator.mediaDevices.getUserMedia({
+        audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}
+      });
+    }else{
+      log("🎤 Giữ microphone hiện tại cho phiên học sinh mới.");
+    }
+
+    status("2/4 Đang kết nối Gemini Live…");
+
+    const socketGeneration=++geminiSocketGeneration;
+    const socket = new WebSocket(`${WS_ENDPOINT}?key=${encodeURIComponent(key)}`);
+    ws = socket;
+    socket.binaryType = "blob";
+
+    socket.onopen=()=>{
+      if(ws!==socket || socketGeneration!==geminiSocketGeneration) return;
+      diag("diagWs","OPEN ✅","ok");
+      diag("diagGemini","Đã mở WebSocket","ok");
+      log("WebSocket: OPEN");
+
+      const setupMessage={
+        setup:{
+          model:`models/${MODEL}`,
+          // Gemini's WebSocket API reference places output modality and
+          // speech configuration inside generationConfig.
+          generationConfig:{
+            responseModalities:["AUDIO"],
+            speechConfig:{
+              voiceConfig:{
+                prebuiltVoiceConfig:{voiceName:VOICE}
+              }
+            }
+          },
+
+          // Kinder-friendly turn taking:
+          // Give a primary-school learner more time to pause, breathe, or think
+          // without Gemini deciding that the answer has already finished.
+          realtimeInputConfig:{
+            automaticActivityDetection:{
+              disabled:false,
+              startOfSpeechSensitivity:"START_SENSITIVITY_LOW",
+              endOfSpeechSensitivity:"END_SENSITIVITY_LOW",
+              prefixPaddingMs:300,
+              silenceDurationMs:3000
+            }
+          },
+
+          systemInstruction:{
+            parts:[{
+              text:
+                "You are Enbu, the friendly Enbu mascot, a friendly English tutor for primary-school children. " +
+                "Practice ONLY the lesson content supplied below. Never expand into unrelated topics. " +
+                "Use simple English, short answers, simple questions, and age-appropriate vocabulary. " +
+                "Normally speak ONE short sentence of 12 words or fewer. Use a second very short sentence only when absolutely necessary. " +
+                "Ask one question at a time and WAIT until the child has clearly finished speaking before you answer. " +
+                "A child may pause, think, breathe, or speak slowly. Do not treat a pause as the end of the answer. " +
+                "Do not interrupt a child who is still answering. If the child gives only part of an answer, wait for the rest instead of asking a new question. " +
+                "After you ask a worksheet question, stay silent until the child speaks. " +
+                "IMPORTANT: The Lesson Engine, not you, controls the sequence of worksheet questions. " +
+                "After the child answers, give ONLY one very short encouragement or correction (maximum 8 words), then STOP. " +
+                "Never ask the next worksheet question yourself. Never answer the worksheet question yourself. Never say what comes next. " +
+                "Never repeat a question automatically. Never repeat the same phrase or question twice in one response. " +
+                "If the child goes off-topic, say only: 'Let’s stay with today’s lesson.' Then wait silently. " +
+                "Encourage the child warmly. Correct only the most important mistake, briefly and simply. " +
+                "If the child asks something outside the lesson, politely redirect to today's lesson. " +
+                "TODAY'S LESSON CONTENT (stay strictly within this): " + lessonText
+            }]
+          },
+          inputAudioTranscription:{},
+          outputAudioTranscription:{}
+        }
+      };
+
+      if(ws!==socket) return;
+      ws.send(JSON.stringify(setupMessage));
+      diag("diagGemini","Đã gửi setup • chờ xác nhận…","busy");
+      status("3/4 Đã gửi cấu hình. Đang chờ Gemini xác nhận…");
+    };
+
+    // IMPORTANT:
+    // Safari may deliver WebSocket frames as Blob. Do not run async message
+    // handlers concurrently: the Blob -> text conversion can finish out of
+    // order, which can reorder/drop audio chunks when they are scheduled.
+    socket.onmessage=(event)=>{
+      if(ws!==socket) return;
+      const seq=++wsMessageSeq;
+      wsReceiveChain = wsReceiveChain.then(async()=>{
+        try{
+          let raw = event.data;
+
+          if(raw instanceof Blob){
+            raw = await raw.text();
+          }else if(raw instanceof ArrayBuffer){
+            raw = new TextDecoder("utf-8").decode(new Uint8Array(raw));
+          }
+
+          if(typeof raw !== "string"){
+            log(`Gemini frame #${seq}: dữ liệu không phải JSON text.`);
+            return;
+          }
+
+          const msg=JSON.parse(raw);
+          log(`📥 frame #${seq}`);
+          await handleServerMessage(msg);
+        }catch(err){
+          log(`Lỗi đọc frame #${seq}: ${err.message}`);
+        }
+      }).catch(err=>{
+        log(`Receive queue error: ${err.message}`);
+      });
+    };
+
+    socket.onerror=()=>{
+      if(ws!==socket) return;
+      diag("diagWs","ERROR ❌","error");
+      diag("diagGemini","WebSocket error ❌","error");
+      log("WebSocket ERROR");
+    };
+
+    socket.onclose=(event)=>{
+      if(ws!==socket) return;
+      log(`WebSocket CLOSED ${event.code}: ${event.reason || "không có lý do"}`);
+      if(connected){
+        connected=false;
+        micBtn.disabled=true;
+        diag("diagWs",`CLOSED ${event.code} ❌`,"error");
+        diag("diagGemini","Đã đóng kết nối ❌","error");
+        status("❌ Gemini đã đóng kết nối.");
+      }
+    };
+
+    // IMPORTANT: do not start/send realtime audio until setupComplete arrives.
+    // Gemini explicitly requires clients to wait for setupComplete before sending
+    // additional messages. This race was especially visible on iPhone Safari.
+    log("Đang chờ setupComplete trước khi bật microphone…");
+
+  }catch(err){
+    console.error(err);
+    status("❌ "+friendlyError(err));
+    cleanup(false);
+  }finally{
+    connectBtn.disabled=false;
+  }
+}
+
+async function startMicrophonePipeline(){
+  if(processor) return;
+  await audioCtx.resume();
+  inputSource=audioCtx.createMediaStreamSource(localStream);
+
+  // ScriptProcessorNode is used here deliberately so this stays a single HTML file
+  // with no build step or external audio-worklet file.
+  processor=audioCtx.createScriptProcessor(4096,1,1);
+
+  silentGain=audioCtx.createGain();
+  silentGain.gain.value=0;
+
+  inputSource.connect(processor);
+  processor.connect(silentGain);
+  silentGain.connect(audioCtx.destination);
+
+  processor.onaudioprocess=(e)=>{
+    // Critical turn-taking guard:
+    // never send microphone audio while Enbu is speaking. This prevents
+    // Safari/iPhone from feeding Enbu's own voice back into Gemini and
+    // causing overlapping/re-triggered answers.
+    if(!micOn || enbufOutputGate || !ws || ws.readyState!==WebSocket.OPEN) return;
+
+    const input=e.inputBuffer.getChannelData(0);
+    const pcm=downsampleTo16k(input,e.inputBuffer.sampleRate);
+
+    ws.send(JSON.stringify({
+      realtimeInput:{
+        audio:{
+          data:base64FromInt16(pcm),
+          mimeType:"audio/pcm;rate=16000"
+        }
+      }
+    }));
+  };
+
+  micOn=true;
+  diag("diagMic","Đang nghe ✅","ok");
+  micBtn.disabled=false;
+  micBtn.classList.add("active");
+}
+
+async function handleServerMessage(msg){
+  if(msg.setupComplete){
+    connected=true;
+    if(audioCtx) audioCtx.resume().catch(()=>{});
+
+    diag("diagGemini","setupComplete ✅","ok");
+    status("4/4 ✅ Enbu đã kết nối! Đang bật âm thanh…");
+    testBtn.disabled=false;
+    await startMicrophonePipeline();
+    diag("diagMic","Đang nghe ✅","ok");
+
+    // Do not wait for the model to invent the first question.
+    // The lesson engine explicitly asks the exact first worksheet question.
+    reconnectingStudentSession=false;
+    setTimeout(()=>{
+      if(connected && ws && ws.readyState===WebSocket.OPEN && lessonPhase!=="asking" && lessonPhase!=="waiting" && lessonPhase!=="evaluating" && lessonPhase!=="finished") {
+        startLessonEngine();
+      }
+    },150);
+    return;
+  }
+
+  if(msg.toolCall){
+    log("Gemini yêu cầu toolCall.");
+    return;
+  }
+
+  if(msg.serverContent){
+    const content=msg.serverContent;
+
+    if(content.interrupted){
+
+      stopQueuedAudio();
+      speaking=false;
+      setState("idle");
+      return;
+    }
+
+    if(content.inputTranscription?.text){
+      const studentPart=content.inputTranscription.text.trim();
+      log("Bạn: "+studentPart);
+      studentAnswerTranscript += (studentAnswerTranscript ? " " : "") + studentPart;
+      if(studentAnswerQuestionIndex<0) studentAnswerQuestionIndex=currentQuestionIndex;
+      lastEnglishSubtitle = "";
+      pendingTranslationEnglish = "";
+      if(translationTimer){ clearTimeout(translationTimer); translationTimer=null; }
+      if(subtitleEnEl) subtitleEnEl.textContent = "🎧 Enbu đang nghe hết câu của bạn…";
+      if(subtitleViEl) subtitleViEl.textContent = "🇻🇳 Đang chờ câu trả lời…";
+      diag("diagTurn","🎤 Lượt của học sinh — hãy nói…","busy");
+      const turnEl=document.getElementById("statusTurn");
+      if(turnEl) turnEl.textContent="🎤 Lượt của học sinh";
+      studentTurnSeen=true;
+      // Give a child at least another 2 seconds to finish after speech is first detected.
+      nextQuestionNotBefore=Math.max(nextQuestionNotBefore,performance.now()+2000);
+      if(lessonPhase==="waiting"){
+        lessonPhase="evaluating";
+        setState("thinking");
+      }
+    }
+
+    if(content.outputTranscription?.text){
+      const english = content.outputTranscription.text.trim();
+      if(english){
+        lastEnglishSubtitle += (lastEnglishSubtitle ? " " : "") + english;
+
+        // IMPORTANT: never let subtitle rendering abort audio handling.
+        if(subtitleEnEl) subtitleEnEl.textContent=lastEnglishSubtitle;
+        if(subtitleEl && subtitleEl!==subtitleEnEl){
+          subtitleEl.textContent="🇬🇧 " + lastEnglishSubtitle;
+        }
+
+        log("Gemini transcript: "+english);
+      }
+    }
+
+    const parts=content.modelTurn?.parts || [];
+    for(const part of parts){
+      if(part.inlineData?.data){
+        if(String(part.inlineData.mimeType||"").startsWith("audio/")){
+          diagAudioChunks++;
+          try{
+            const b=atob(part.inlineData.data);
+            diagAudioSeconds += (b.length/2)/24000;
+          }catch{}
+          updateDiagCounters();
+          log(`🔊 nhận audio chunk #${diagAudioChunks} (${diagAudioSeconds.toFixed(2)}s)`);
+          lastAudioChunkAt=performance.now();
+          if(turnDrainTimer){ clearTimeout(turnDrainTimer); turnDrainTimer=null; }
+          turnEnded=false;
+          enbufOutputGate=true;
+          speaking=true;
+          setState("speaking");
+          diag("diagTurn","🗣️ Enbu đang nói…","busy");
+          const turnEl=document.getElementById("statusTurn");
+          if(turnEl) turnEl.textContent="🗣️ Enbu đang nói";
+          playPcm24k(part.inlineData.data);
+        }
+      }
+    }
+
+    if(content.turnComplete){
+      turnEnded=true;
+
+      const completedEnglish=collapseRepeatedUtterance(lastEnglishSubtitle.trim());
+      if(completedEnglish){
+        translateSubtitle(completedEnglish);
+      }
+
+      // First model turn is the exact worksheet question.
+      if(questionAudioTurn){
+        questionAudioTurn=false;
+        lessonPhase="waiting";
+      }
+
+      // Do not finalize immediately. Gemini can send turnComplete slightly
+      // before its final modelTurn audio frame.
+      scheduleTurnDrainCheck();
+    }
+  }
+
+  if(msg.error){
+    log("GEMINI ERROR: "+JSON.stringify(msg.error));
+    status("❌ Gemini báo lỗi: "+(msg.error.message || "unknown error"));
+  }
+}
+
+
+function scheduleTurnDrainCheck(){
+  if(turnDrainTimer) clearTimeout(turnDrainTimer);
+
+  const check=()=>{
+    turnDrainTimer=null;
+    if(!turnEnded) return;
+
+    const sinceAudio=performance.now()-lastAudioChunkAt;
+    if(outputPlaying>0 || sinceAudio < TURN_DRAIN_GRACE_MS){
+      const wait=Math.max(120, outputPlaying>0 ? 120 : TURN_DRAIN_GRACE_MS-sinceAudio);
+      turnDrainTimer=setTimeout(check,wait);
+      return;
+    }
+
+    enbufOutputGate=false;
+    speaking=false;
+    face.style.transform="";
+    face.style.removeProperty("--brow-left-y");
+    face.style.removeProperty("--brow-right-y");
+    face.style.removeProperty("--brow-left-rot");
+    face.style.removeProperty("--brow-right-rot");
+    mouth.style.height="";
+
+    if(lessonPhase==="evaluating" && studentTurnSeen){
+      finalizeStudentTurnOnce();
+    }else{
+      setState(lessonPhase==="waiting" ? "listening" : "idle");
+      diag("diagTurn","🎤 Lượt của học sinh","info");
+      turnEnded=false;
+    }
+  };
+
+  turnDrainTimer=setTimeout(check,TURN_DRAIN_GRACE_MS);
+}
+
+
+function collapseRepeatedUtterance(text){
+  const t=String(text||"").replace(/\s+/g," ").trim();
+  if(!t) return "";
+
+  // Exact phrase repeated twice: "May I watch TV? May I watch TV?"
+  const parts=t.split(/(?<=[.!?])\s+/).map(x=>x.trim()).filter(Boolean);
+  if(parts.length===2 && normalizeAnswer(parts[0])===normalizeAnswer(parts[1])){
+    return parts[0];
+  }
+
+  // Entire string repeated twice without a clear sentence boundary.
+  const half=Math.floor(t.length/2);
+  if(t.length>20){
+    const left=t.slice(0,half).trim();
+    const right=t.slice(half).trim();
+    if(normalizeAnswer(left)===normalizeAnswer(right)) return left;
+  }
+
+  return t;
+}
+
+function base64ToBytes(b64){
+  const binary=atob(b64);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  return bytes;
+}
+
+async function translateSubtitle(english){
+  const text=collapseRepeatedUtterance(String(english||"").replace(/\s+/g," ").trim());
+  if(!text) return;
+
+  // Do not spend API quota twice on the same subtitle.
+  const cacheKey=text.toLowerCase();
+  const cached=translationCache.get(cacheKey);
+  if(cached){
+    renderVietnameseTranslation(cached);
+    log(`✅ Dịch từ cache (${cached.length} ký tự).`);
+    return;
+  }
+
+  if(translationInFlight.has(cacheKey)){
+    return;
+  }
+
+  const key=document.getElementById("apiKey")?.value.trim();
+  if(!key){
+    renderVietnameseTranslation("Chưa có API key.");
+    log("⚠️ Không có API key cho dịch phụ đề.");
+    return;
+  }
+
+  if(subtitleViEl) subtitleViEl.textContent="🇻🇳 Đang dịch…";
+  log(`🌐 Dịch nhanh bằng Gemini 3.5 Flash-Lite: "${text}"`);
+
+  const task=(async()=>{
+    try{
+      const r=await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "x-goog-api-key":key
+          },
+          body:JSON.stringify({
+            contents:[{
+              parts:[{
+                text:
+                  "Translate the complete English sentence into simple, natural Vietnamese for a primary-school child. " +
+                  "Translate the entire sentence. Return ONLY one Vietnamese translation. " +
+                  "Do not give alternatives and do not explain.\n\n" + text
+              }]
+            }],
+            generationConfig:{
+              maxOutputTokens:72
+            }
+          })
+        }
+      );
+
+      if(!r.ok){
+        const body=await r.text().catch(()=> "");
+        throw new Error(`Translation HTTP ${r.status}${body ? " — "+body.slice(0,220) : ""}`);
+      }
+
+      const data=await r.json();
+      const vi=(data?.candidates?.[0]?.content?.parts || [])
+        .map(x=>x?.text||"")
+        .join("")
+        .replace(/\s+/g," ")
+        .trim();
+
+      if(!vi) throw new Error("Gemini không trả về bản dịch.");
+
+      translationCache.set(cacheKey,vi);
+      // Keep cache modest.
+      if(translationCache.size>50){
+        const firstKey=translationCache.keys().next().value;
+        translationCache.delete(firstKey);
+      }
+
+      renderVietnameseTranslation(vi);
+      log(`✅ Dịch hoàn tất (${vi.length} ký tự).`);
+    }catch(err){
+      // Do not block the English voice conversation if translation quota is exhausted.
+      if(/429|RESOURCE_EXHAUSTED|quota/i.test(err.message)){
+        renderVietnameseTranslation("⏳ Dịch đang tạm bận. Phần tiếng Anh vẫn hoạt động.");
+        log("⚠️ Translation quota 429 — bỏ qua lượt dịch này để không làm gián đoạn Enbu.");
+      }else{
+        renderVietnameseTranslation("Chưa lấy được bản dịch.");
+        log("❌ Dịch phụ đề: "+err.message);
+      }
+    }finally{
+      translationInFlight.delete(cacheKey);
+    }
+  })();
+
+  translationInFlight.set(cacheKey,task);
+  await task;
+}
+
+
+async function playPcm24k(base64){
+  if(!audioCtx) return;
+
+  // Safari/iOS can temporarily suspend the AudioContext. Resume before
+  // scheduling each chunk to avoid silent gaps after a brief suspension.
+  if(audioCtx.state !== "running"){
+    try{ await audioCtx.resume(); }catch{}
+  }
+
+  const bytes=base64ToBytes(base64);
+  if(bytes.length<2) return;
+
+  const usable=bytes.byteLength-(bytes.byteLength%2);
+  const samples16=new Int16Array(bytes.buffer,bytes.byteOffset,usable/2);
+  if(!samples16.length) return;
+
+  // Stable Safari/iPhone path: schedule every PCM chunk contiguously in a single
+  // AudioContext timeline. No AudioWorklet and no whole-turn delay.
+  const buffer=audioCtx.createBuffer(1,samples16.length,24000);
+  const channel=buffer.getChannelData(0);
+  let sum=0;
+  for(let i=0;i<samples16.length;i++){
+    const v=samples16[i]/32768;
+    channel[i]=v;
+    sum+=v*v;
+  }
+
+  animateMouth(Math.sqrt(sum/Math.max(1,samples16.length)));
+
+  const source=audioCtx.createBufferSource();
+  source.buffer=buffer;
+  source.connect(audioCtx.destination);
+
+  const now=audioCtx.currentTime;
+  const guard=0.005;
+  if(!Number.isFinite(nextPlayTime) || nextPlayTime < now+guard){
+    nextPlayTime=now+guard;
+  }
+
+  const start=nextPlayTime;
+  const end=start+buffer.duration;
+
+  const generation=audioPlaybackGeneration;
+  source.start(start);
+  nextPlayTime=end;
+  outputPlaying++;
+  diagAudioSeconds += buffer.duration;
+  updateDiagCounters();
+  enbufOutputGate=true;
+  speaking=true;
+
+  // Do not decide turn completion from individual chunks.
+  // turnEnded is set only by Gemini's turnComplete.
+  source.onended=()=>{
+    if(generation !== audioPlaybackGeneration) return;
+    outputPlaying=Math.max(0,outputPlaying-1);
+
+    if(outputPlaying===0 && turnEnded){
+      enbufOutputGate=false;
+      speaking=false;
+      face.style.transform="";
+      face.style.removeProperty("--brow-left-y");
+      face.style.removeProperty("--brow-right-y");
+      face.style.removeProperty("--brow-left-rot");
+      face.style.removeProperty("--brow-right-rot");
+      mouth.style.height="";
+      setState(lessonPhase==="waiting" ? "listening" : "idle");
+
+      if(lessonPhase==="evaluating" && studentTurnSeen){
+        finalizeStudentTurnOnce();
+      }else{
+        turnEnded=false;
+      }
+    }
+  };
+}
+
+let lastAudioAt=0;
+let audioPlaybackGeneration=0;
+
+
+
+function animateMouth(rms){
+  applyFaceFromAudio(rms);
+  setTimeout(()=>{
+    if(!speaking){
+      mouth.style.height="";
+      resetFaceTransform();
+    }
+  },90);
+}
+
+function scheduleReturnToIdle(){
+  const delay=Math.max(200,(nextPlayTime-audioCtx.currentTime)*1000+100);
+  const timer=setTimeout(()=>{
+    if(outputPlaying<=0 && turnEnded){
+      enbufOutputGate=false;
+      speaking=false;
+      setState("idle");
+    }
+  },delay);
+  scheduledTimers.push(timer);
+}
+
+function stopQueuedAudio(){
+  audioPlaybackGeneration++;
+  nextPlayTime=audioCtx ? audioCtx.currentTime : 0;
+  outputPlaying=0;
+  scheduledTimers.forEach(clearTimeout);
+  scheduledTimers=[];
+  speaking=false;
+  enbufOutputGate=false;
+  turnEnded=false;
+  outputPlaying=0;
+  if(pcmPlayerNode) pcmPlayerNode.port.postMessage({type:"clear"});
+  mouth.style.height="";
+  face.style.removeProperty("--brow-left-y");
+  face.style.removeProperty("--brow-right-y");
+  face.style.removeProperty("--brow-left-rot");
+  face.style.removeProperty("--brow-right-rot");
+  face.classList.remove("speaking");
+}
+
+
+function playLocalAudioTest(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx.resume().then(()=>{
+      const sr=audioCtx.sampleRate;
+      const duration=0.35;
+      const buffer=audioCtx.createBuffer(1,Math.floor(sr*duration),sr);
+      const data=buffer.getChannelData(0);
+      for(let i=0;i<data.length;i++){
+        const t=i/sr;
+        data[i]=0.16*Math.sin(2*Math.PI*660*t)*Math.exp(-4*t);
+      }
+      const src=audioCtx.createBufferSource();
+      src.buffer=buffer;
+      src.connect(audioCtx.destination);
+      src.start();
+      log("🔊 Local audio test started.");
+    });
+  }catch(err){
+    log("❌ Local audio test: "+err.message);
+  }
+}
+
+function sendTestText(){
+  if(!connected || !ws || ws.readyState!==WebSocket.OPEN){
+    status("Chưa kết nối Gemini.");
+    return;
+  }
+  status("🧪 Đang gửi câu kiểm tra…");
+  ws.send(JSON.stringify({
+    realtimeInput:{
+      text:"Say a very short English greeting and ask one simple question related to today’s lesson."
+    }
+  }));
+}
+
+async function unlockIOSAudio(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    await audioCtx.resume();
+
+    // A tiny silent buffer started from a real iOS tap helps unlock playback.
+    const b = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+    const src = audioCtx.createBufferSource();
+    src.buffer = b;
+    src.connect(audioCtx.destination);
+    src.start(0);
+
+    iosAudioBtn.textContent = "🔊 Âm thanh đã bật";
+    status("🔊 Âm thanh iPhone đã được mở. Bây giờ bấm Kết nối.");
+    log("iOS AudioContext: " + audioCtx.state);
+  }catch(err){
+    status("❌ Không mở được âm thanh iPhone: " + err.message);
+  }
+}
+
+function toggleMic(){
+  if(!connected || !localStream) return;
+
+  micOn=!micOn;
+  localStream.getAudioTracks().forEach(t=>t.enabled=micOn);
+  micBtn.classList.toggle("active",micOn);
+
+  if(micOn){
+    status("🎤 Microphone đang bật. Hãy nói…");
+    setState("idle");
+  }else{
+    status("🔇 Microphone đang tắt.");
+  }
+}
+
+function disconnect(){
+  cleanup(true);
+}
+
+function cleanup(show){
+  connected=false;
+  micOn=false;
+  speaking=false;
+
+  scheduledTimers.forEach(clearTimeout);
+  scheduledTimers=[];
+  if(turnDrainTimer){ clearTimeout(turnDrainTimer); turnDrainTimer=null; }
+
+  if(processor){
+    try{processor.disconnect()}catch{}
+    processor.onaudioprocess=null;
+  }
+  if(inputSource) try{inputSource.disconnect()}catch{}
+  if(silentGain) try{silentGain.disconnect()}catch{}
+  if(localStream) localStream.getTracks().forEach(t=>t.stop());
+  if(ws) try{ws.close()}catch{}
+
+  processor=inputSource=silentGain=localStream=ws=null;
+  if(pcmPlayerNode) pcmPlayerNode.port.postMessage({type:"clear"});
+  nextPlayTime=0;
+  outputPlaying=0;
+  enbufOutputGate=false;
+  useWorkletPlayer=false;
+  turnEnded=false;
+  lessonQuestions=[];
+  currentQuestionIndex=-1;
+  lessonPhase="idle";
+  studentTurnSeen=false;
+  questionAudioTurn=false;
+
+  micBtn.disabled=true;
+  micBtn.classList.remove("active");
+  testBtn.disabled=true;
+  connectBtn.textContent="Kết nối";
+
+  if(show) {
+    diag("diagWs","Đã đóng","info");
+    diag("diagGemini","Offline","info");
+    diag("diagMic","Tắt","info");
+    status("Đã ngắt kết nối.");
+  }
+}
+
+function friendlyError(err){
+  const s=String(err?.message||err);
+
+  if(s.includes("NotAllowedError"))
+    return "Trình duyệt chưa cho phép microphone.";
+  if(s.includes("NotFoundError"))
+    return "Không tìm thấy microphone.";
+  if(s.includes("SecurityError"))
+    return "Trình duyệt chặn microphone. Hãy chạy bằng HTTPS hoặc localhost.";
+  if(s.includes("WebSocket"))
+    return "Không mở được WebSocket tới Gemini.";
+  if(location.protocol==="file:")
+    return "Bạn đang mở file trực tiếp. Nếu microphone/WebSocket bị chặn, hãy chạy file qua localhost hoặc HTTPS.";
+  return s;
+}
+
+
+// ===== Enbu / Enbu UX layer =====
+const vocabEl = document.getElementById("vocab");
+const progressEl = document.getElementById("progress");
+const lessonTitleEl = document.getElementById("lessonTitle");
+const hintEl = document.getElementById("hintText");
+const sessionBadgeEl = document.getElementById("sessionBadge");
+const lessonSaveBtn = document.getElementById("lessonSaveBtn");
+const clearLessonBtn = document.getElementById("clearLessonBtn");
+const lessonToggleBtn = document.getElementById("lessonToggleBtn");
+const lessonSection = document.querySelector("section.lesson");
+const parentToggleBtn = document.getElementById("parentToggleBtn");
+const parentPanel = document.getElementById("parentPanel");
+const emotionLabelEl = document.getElementById("emotionLabel");
+
+let earnedStars = Number(localStorage.getItem("enbufStars") || 0);
+let turns = Number(localStorage.getItem("enbufTurns") || 0);
+
+function renderStars(){
+  // Progress/score uses ALL questions the student has actually answered.
+  // It is never capped at five questions.
+  if(progressEl) progressEl.textContent = answeredCount
+    ? `${correctCount}/${answeredCount} đúng`
+    : "0 câu";
+  renderScoreDisplay();
+}
+
+function renderScoreDisplay(message=""){
+  const el=document.getElementById("scoreDisplay");
+  if(!el) return;
+
+  // IMPORTANT: use the total number of answered questions.
+  // Do not reduce the denominator to 5.
+  const denominator=Math.max(1, answeredCount || 1);
+  const shownCorrect=Math.min(correctCount, answeredCount);
+  const stars="⭐".repeat(scoreStars) + "☆".repeat(Math.max(0,5-scoreStars));
+
+  el.classList.remove("score-good","score-try");
+  if(correctCount>0 && answeredCount>0){
+    el.classList.add(correctCount===answeredCount ? "score-good" : "score-try");
+  }
+
+  const statusText = answeredCount
+    ? (message || `Your performance ${shownCorrect}/${answeredCount}`)
+    : "Your performance";
+
+  el.innerHTML=`<strong>${escapeHtml(statusText)}</strong> <span class="score-stars">${stars}</span>`;
+  updateKidUI();
+}
+
+function calculateScoreStars(){
+  if(!answeredCount) return 0;
+
+  // Score is calculated from the COMPLETE set of questions answered so far.
+  // 100% = 5 stars
+  // 80–99% = 4 stars
+  // 60–79% = 3 stars
+  // 40–59% = 2 stars
+  // below 40% = 1 star
+  const ratio=correctCount/answeredCount;
+
+  if(ratio>=1) return 5;
+  if(ratio>=0.8) return 4;
+  if(ratio>=0.6) return 3;
+  if(ratio>=0.4) return 2;
+  return 1;
+}
+
+function normalizeAnswer(text){
+  return String(text||"")
+    .toLowerCase()
+    .replace(/[’']/g,"")
+    .replace(/\b(i am|im)\b/g,"i am")
+    .replace(/\b(you are|youre)\b/g,"you are")
+    .replace(/\b(it is|its)\b/g,"it is")
+    .replace(/\b(we are|were)\b/g,"we are")
+    .replace(/\b(there is|theres)\b/g,"there is")
+    .replace(/\b(there are|there're)\b/g,"there are")
+    .replace(/[^\p{L}\p{N}\s]/gu," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function answerTokens(text){
+  const stop=new Set([
+    "a","an","the","is","am","are","i","you","we","it","my","your","our",
+    "to","of","in","on","at","do","does","did","can","there","yes","no",
+    "please","very","today","there","this","that"
+  ]);
+  return normalizeAnswer(text)
+    .split(/\s+/)
+    .filter(w=>w.length>1 && !stop.has(w));
+}
+
+function detectQuestionType(qtext){
+  const q=normalizeAnswer(qtext);
+  if(/^(what is your name|whats your name)\b/.test(q)) return "name";
+  if(/^how old are you\b/.test(q)) return "age";
+  if(/^what day is it\b/.test(q)) return "day";
+  if(/^where are we\b|^where is\b|^where are\b/.test(q)) return "place";
+  if(/^what can you see\b|^what do you see\b|^what else can you see\b/.test(q)) return "see";
+  if(/^do you like\b/.test(q)) return "like";
+  if(/^can you\b|^can .*?\b/.test(q)) return "can";
+  if(/^is there\b|^are there\b/.test(q)) return "there";
+  if(/^(is|are|was|were|did|does|do|can|has|have|will)\b/.test(q)) return "yesno";
+  if(/^what\b|^who\b|^when\b|^why\b|^how\b/.test(q)) return "wh";
+  return "open";
+}
+
+function hasBasicSentenceStructure(text){
+  const t=normalizeAnswer(text);
+  if(!t) return false;
+
+  const words=t.split(/\s+/).filter(Boolean);
+  if(words.length<2) return false;
+
+  // A simple child-level English sentence usually begins with a subject,
+  // an auxiliary, or a yes/no marker.
+  const starters=/^(i|im|my|we|were|we're|he|she|they|it|there|yes|no|this|that|the|a|an|its|its|because|in|on|at)\b/;
+  return starters.test(t);
+}
+
+function evaluateStudentAnswer(question,answer){
+  const q=question || {};
+  const qtext=normalizeAnswer(q.question || "");
+  const actual=normalizeAnswer(answer || "");
+
+  if(!actual) return {pass:false,reason:"no-answer"};
+
+  const type=detectQuestionType(qtext);
+  const structure=hasBasicSentenceStructure(actual);
+
+  // Name: any plausible name answer is acceptable; it does NOT need to match
+  // the model answer's name.
+  if(type==="name"){
+    const pass=/\b(my name is|i am|im)\b\s+\p{L}{2,}/u.test(actual)
+      || (/^\p{L}{2,}$/.test(actual) && actual.split(/\s+/).length===1);
+    return {pass,reason:pass?"meaning-and-structure":"name-structure"};
+  }
+
+  // Age: any sensible numeric age with a normal answer structure.
+  if(type==="age"){
+    const pass=/\b(i am|im|my age is)\b.*\b\d{1,2}\b/.test(actual)
+      || /\b\d{1,2}\s*(years? old)?\b/.test(actual);
+    return {pass,reason:pass?"meaning-and-structure":"age-structure"};
+  }
+
+  // Day/date: accept any valid day/date, not the model's exact day.
+  if(type==="day"){
+    const pass=/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/.test(actual)
+      || /\b(today|tomorrow|yesterday)\b/.test(actual);
+    return {pass,reason:pass?"meaning-and-structure":"day-content"};
+  }
+
+  // Place: require a meaningful location response, without matching exact words.
+  if(type==="place"){
+    const pass=(/\b(we are|we're|i am|im|at|in|on)\b/.test(actual) && actual.split(/\s+/).length>=3)
+      || /\b(home|school|countryside|city|village|park|farm|house)\b/.test(actual);
+    return {pass,reason:pass?"meaning-and-structure":"place-structure"};
+  }
+
+  // Observation questions: require the expected response structure, but the
+  // object can be any sensible noun; do not compare it to Model Answer.
+  if(type==="see"){
+    const pass=/\b(i can see|i see|there is|there are)\b/.test(actual)
+      && actual.split(/\s+/).length>=4;
+    return {pass,reason:pass?"meaning-and-structure":"see-structure"};
+  }
+
+  // Likes: accept any preference and do not compare the object to the model.
+  if(type==="like"){
+    const pass=/\b(yes i do|yes i like|i like|no i dont|i don't like|i do not like)\b/.test(actual)
+      || /\b(i love|i really like|i dont|i don't)\b/.test(actual);
+    return {pass,reason:pass?"meaning-and-structure":"like-structure"};
+  }
+
+  // "There is/are" questions: correctness means a grammatical yes/no response
+  // using the matching existential structure.
+  if(type==="there"){
+    const positive=/\b(yes|there is|there are)\b/.test(actual);
+    const negative=/\b(no|there isnt|there aren't|there are not|there is not)\b/.test(actual);
+    const pass=(positive||negative) && actual.split(/\s+/).length>=2;
+    return {pass,reason:pass?"meaning-and-structure":"there-structure"};
+  }
+
+  // General yes/no questions: answer must contain a clear yes/no response and
+  // a plausible short structure, but the content after it need not match
+  // the Model Answer word-for-word.
+  if(type==="yesno" || type==="can"){
+    const pass=/^(yes|no)\b/.test(actual)
+      || /^(yes i|no i|yes it|no it|yes there|no there)\b/.test(actual);
+    return {pass,reason:pass?"meaning-and-structure":"yesno-structure"};
+  }
+
+  // Generic WH/open questions: accept any substantive, grammatical child-level
+  // answer. Model Answer is NOT used as a lexical target.
+  if(type==="wh" || type==="open"){
+    const words=actual.split(/\s+/).filter(Boolean);
+    return {
+      pass:structure && words.length>=2,
+      reason:structure ? "meaning-and-structure":"sentence-structure"
+    };
+  }
+
+  return {pass:structure,reason:structure?"meaning-and-structure":"sentence-structure"};
+}
+function recordStudentAnswer(){
+  const qIndex = studentAnswerQuestionIndex>=0 ? studentAnswerQuestionIndex : currentQuestionIndex;
+  const q=lessonQuestions[qIndex];
+  if(!q) return false;
+
+  const result=evaluateStudentAnswer(q,studentAnswerTranscript);
+  answeredCount++;
+
+  if(result.pass){
+    correctCount++;
+    renderScoreDisplay("✅ Great answer! Your performance");
+    setState("happy");
+    log(`✅ Câu ${qIndex+1}: ĐẠT — đúng ý nghĩa + cấu trúc (${studentAnswerTranscript})`);
+  }else{
+    renderScoreDisplay("💪 Good try! Your performance");
+    setState("love");
+    log(`❌ Câu ${qIndex+1}: CHƯA ĐẠT — thiếu ý nghĩa/cấu trúc (${studentAnswerTranscript || "không có câu trả lời"})`);
+  }
+
+  // Score is based on the current five-answer window. For lessons shorter than
+  // five questions, the percentage still maps naturally to the 1–5 star scale.
+  scoreStars=calculateScoreStars();
+  renderStars();
+  studentAnswerQuestionIndex=-1;
+  return result.pass;
+}
+
+function resetAnswerScore(){
+  studentAnswerTranscript="";
+  answeredCount=0;
+  correctCount=0;
+  scoreStars=0;
+  renderStars();
+  renderScoreDisplay();
+}
+function saveLesson(){
+  localStorage.setItem("enbufLesson", lessonEl.value);
+  lessonText = lessonEl.value.trim();
+  if(lessonTitleEl) lessonTitleEl.textContent = detectTopic(lessonText);
+  renderVocabulary(lessonText);
+  const prepared = prepareLessonQuestions("lưu bài học");
+  if(prepared && lessonSection) lessonSection.classList.add("is-hidden");
+  if(prepared && lessonToggleBtn) lessonToggleBtn.classList.remove("lesson-toggle-active");
+  status(lessonQuestions.length ? `📚 Đã lưu bài học — ${lessonQuestions.length} câu hỏi.` : "📚 Đã lưu bài học, nhưng chưa tìm thấy câu hỏi.");
+  log("🧩 Enbu V10.28: lesson preflight + English Buffet branding + selectable characters.");
+}
+function detectTopic(text){
+  const m=text.match(/(?:topic|chủ đề)\s*:\s*([^\n]+)/i);
+  return m ? m[1].trim() : "Today's English";
+}
+function renderVocabulary(text){
+  if(!vocabEl) return;
+  const lines=text.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const words=[];
+  for(const line of lines){
+    if(/^(words?|vocabulary|từ vựng)\s*:/i.test(line)) continue;
+    if(/^(questions?|câu hỏi|topic|chủ đề|rules?|quy tắc)\s*:/i.test(line)) continue;
+    if(/^[•·\-*]\s*/.test(line)){
+      const w=line.replace(/^[•·\-*]\s*/,"").trim();
+      if(w && w.length<45) words.push(w);
+    }
+  }
+  const unique=[...new Set(words)].slice(0,12);
+  vocabEl.innerHTML = unique.length
+    ? unique.map(w=>`<button class="word-chip" onclick="sayWord(${JSON.stringify(w)})">${escapeHtml(w)}</button>`).join("")
+    : '<span class="empty-vocab">Thêm từ vựng dạng “• word” vào bài học.</span>';
+}
+function escapeHtml(x){
+  return x.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function sayWord(word){
+  if(!connected || !ws || ws.readyState!==WebSocket.OPEN){
+    status("🔌 Hãy kết nối Enbu trước.");
+    return;
+  }
+  setState("thinking");
+  ws.send(JSON.stringify({
+    clientContent:{
+      turns:[{
+        role:"user",
+        parts:[{text:`Teach me this word from today's lesson: ${word}. Say the word, then one very short example sentence. Keep it suitable for a primary-school child.`}]
+      }],
+      turnComplete:true
+    }
+  }));
+}
+function addStar(){
+  earnedStars++;
+  turns++;
+  localStorage.setItem("enbufStars", earnedStars);
+  localStorage.setItem("enbufTurns", turns);
+  renderStars();
+  if(emotionLabelEl) emotionLabelEl.textContent="⭐ Great job!";
+}
+function showHint(){
+  if(!connected || !ws || ws.readyState!==WebSocket.OPEN){
+    hintEl.textContent="Connect Enbu first.";
+    return;
+  }
+  hintEl.textContent="💡 Enbu is thinking of a small hint…";
+  ws.send(JSON.stringify({
+    clientContent:{
+      turns:[{
+        role:"user",
+        parts:[{text:"Give the child ONE very short hint for the current lesson question. Do not give the full answer. Use simple English. Stay strictly within today's lesson."}]
+      }],
+      turnComplete:true
+    }
+  }));
+}
+function reviewLesson(){
+  if(!connected || !ws || ws.readyState!==WebSocket.OPEN){
+    hintEl.textContent="Connect Enbu first.";
+    return;
+  }
+  ws.send(JSON.stringify({
+    clientContent:{
+      turns:[{
+        role:"user",
+        parts:[{text:"Give a tiny review of today's lesson: say 3 key words and ask 1 easy question. Keep it under 20 words."}]
+      }],
+      turnComplete:true
+    }
+  }));
+}
+const vocabModalEl = document.getElementById("vocabModal");
+const vocabContentEl = document.getElementById("vocabContent");
+
+const ENBU_BASIC_VOCAB = {
+  "name":["/neɪm/","tên"], "friend":["/frend/","bạn"], "teacher":["/ˈtiː.tʃər/","giáo viên"],
+  "student":["/ˈstuː.dənt/","học sinh"], "class":["/klæs/","lớp học"], "school":["/skuːl/","trường học"],
+  "happy":["/ˈhæp.i/","vui"], "sad":["/sæd/","buồn"], "old":["/oʊld/","già; cũ"],
+  "today":["/təˈdeɪ/","hôm nay"], "tomorrow":["/təˈmɑːr.oʊ/","ngày mai"], "morning":["/ˈmɔːr.nɪŋ/","buổi sáng"],
+  "afternoon":["/ˌæf.tɚˈnuːn/","buổi chiều"], "day":["/deɪ/","ngày"],
+  "countryside":["/ˈkʌn.tri.saɪd/","nông thôn"], "road":["/roʊd/","con đường"], "river":["/ˈrɪv.ɚ/","con sông"],
+  "sky":["/skaɪ/","bầu trời"], "rainbow":["/ˈreɪn.boʊ/","cầu vồng"], "beautiful":["/ˈbjuː.t̬ə.fəl/","đẹp"],
+  "like":["/laɪk/","thích"], "love":["/lʌv/","yêu; rất thích"], "see":["/siː/","nhìn thấy"],
+  "look":["/lʊk/","nhìn"], "watch":["/wɑːtʃ/","xem"], "use":["/juːz/","sử dụng"],
+  "play":["/pleɪ/","chơi"], "soccer":["/ˈsɑː.kɚ/","bóng đá"], "tennis":["/ˈten.ɪs/","quần vợt"],
+  "swimming":["/ˈswɪm.ɪŋ/","bơi lội"], "swim":["/swɪm/","bơi"], "ball":["/bɔːl/","quả bóng"],
+  "throwing":["/ˈθroʊ.ɪŋ/","ném"], "throw":["/θroʊ/","ném"], "catching":["/ˈkætʃ.ɪŋ/","bắt"],
+  "catch":["/kætʃ/","bắt; đón"], "leg":["/leɡ/","chân"], "feet":["/fiːt/","bàn chân"], "foot":["/fʊt/","bàn chân"],
+  "absent":["/ˈæb.sənt/","vắng mặt"], "present":["/ˈprez.ənt/","có mặt"], "hide":["/haɪd/","trốn; giấu"],
+  "seek":["/siːk/","tìm kiếm"], "first":["/fɝːst/","đầu tiên"], "morning":["/ˈmɔːr.nɪŋ/","buổi sáng"],
+  "may":["/meɪ/","có thể; được phép"], "can":["/kæn/","có thể"], "must":["/mʌst/","phải"],
+  "helmet":["/ˈhel.mət/","mũ bảo hiểm"], "homework":["/ˈhoʊm.wɝːk/","bài tập về nhà"], "late":["/leɪt/","muộn"],
+  "good":["/ɡʊd/","tốt"], "great":["/ɡreɪt/","tuyệt vời"], "excellent":["/ˈek.səl.ənt/","xuất sắc"],
+  "right":["/raɪt/","đúng"], "answer":["/ˈæn.sɚ/","câu trả lời"], "question":["/ˈkwes.tʃən/","câu hỏi"],
+  "thank":["/θæŋk/","cảm ơn"], "thanks":["/θæŋks/","lời cảm ơn"], "again":["/əˈɡen/","lại; lần nữa"],
+  "together":["/təˈɡeð.ɚ/","cùng nhau"], "run":["/rʌn/","chạy"], "watch":["/wɑːtʃ/","xem"], "tv":["/ˌtiːˈviː/","tivi"],
+  "heart":["/hɑːrt/","trái tim"], "task":["/tæsk/","nhiệm vụ"], "nobody":["/ˈnoʊ.bɑː.di/","không ai"]
+};
+
+function extractLessonWords(text){
+  const clean = String(text||"")
+    .replace(/\|/g," ")
+    .replace(/[•·]/g," ")
+    .replace(/\b(STT|Question|Model Answer|Student'?s Answer|Giáo viên|Câu trả lời mẫu|Câu trả lời của học sinh)\b/gi," ");
+  const tokens = clean.toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g) || [];
+  const stop = new Set([
+    "the","a","an","is","am","are","i","you","we","it","my","your","our","this","that",
+    "what","how","where","when","who","why","do","does","did","can","there","yes","no",
+    "to","in","on","at","of","and","or","for","today","please","very","one","two","three",
+    "four","five","six","seven","eight","nine","ten"
+  ]);
+  const freq = new Map();
+  for(const w of tokens){
+    if(w.length < 3 || stop.has(w)) continue;
+    freq.set(w,(freq.get(w)||0)+1);
+  }
+  return [...freq.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12).map(x=>x[0]);
+}
+
+function renderVocabularyRows(items, sourceLabel="Enbu"){
+  if(!vocabContentEl) return;
+  const rows = items.filter(x=>x && x.word).slice(0,12);
+  if(!rows.length){
+    vocabContentEl.innerHTML = '<div class="vocab-error">Chưa tìm thấy từ vựng đủ rõ trong bài học.</div>';
+    return;
+  }
+  vocabContentEl.innerHTML =
+    '<div class="vocab-list">' +
+    rows.map(x=>{
+      const word=String(x.word||"").trim();
+      const ipa=String(x.ipa||"").trim();
+      const meaning=String(x.meaning||"").trim();
+      return `<div class="vocab-row">
+        <div class="vocab-word">${escapeHtml(word)}</div>
+        <div class="vocab-ipa">${escapeHtml(ipa || "—")}</div>
+        <div class="vocab-meaning">${escapeHtml(meaning || "—")}</div>
+        <button class="vocab-say" type="button" onclick='sayVocabWord(${JSON.stringify(word)})'>🔊</button>
+      </div>`;
+    }).join("") +
+    '</div><div class="vocab-note">Nguồn: ' + escapeHtml(sourceLabel) + ' • Từ được chọn theo nội dung bài học.</div>';
+}
+
+function renderVocabularyFallback(text){
+  const words = extractLessonWords(text);
+  const items = words.map(w=>{
+    const d=ENBU_BASIC_VOCAB[w];
+    if(d) return {word:w,ipa:d[0],meaning:d[1]};
+    // Never leave the meaning column blank. Unknown lesson words are still useful
+    // as vocabulary targets and are marked clearly until Gemini supplies details.
+    return {word:w,ipa:"",meaning:"từ quan trọng trong bài"};
+  });
+  renderVocabularyRows(items,"bộ từ dự phòng của Enbu");
+}
+
+function cleanVocabularyJson(raw){
+  let t=String(raw||"").trim();
+  t=t.replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/i,"").trim();
+  const a=t.indexOf("[");
+  const b=t.lastIndexOf("]");
+  if(a<0 || b<a) throw new Error("Gemini không trả về danh sách JSON.");
+  return JSON.parse(t.slice(a,b+1));
+}
+
+function normalizeVocabularyItems(items,text){
+  if(!Array.isArray(items)) throw new Error("Dữ liệu từ vựng không hợp lệ.");
+  const lessonWords = new Set(extractLessonWords(text));
+  const seen = new Set();
+  return items.map(x=>({
+    word:String(x?.word||"").trim(),
+    ipa:String(x?.ipa||"").trim(),
+    meaning:String(x?.meaning||"").trim()
+  })).filter(x=>x.word).filter(x=>{
+    const w=x.word.toLowerCase().replace(/[^a-z']/g,"");
+    const key=x.word.toLowerCase();
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return lessonWords.has(w) || x.word.includes(" ");
+  });
+}
+
+function supplementVocabulary(items,text){
+  const out=[...(items||[])];
+  const seen=new Set(out.map(x=>String(x.word||"").toLowerCase().replace(/[^a-z']/g,"")));
+  for(const w of extractLessonWords(text)){
+    if(out.length>=12) break;
+    if(seen.has(w)) continue;
+    const d=ENBU_BASIC_VOCAB[w];
+    // Only supplement with words for which Enbu has reliable local IPA + meaning.
+    // This prevents the UI from showing empty "—" cells.
+    if(d){
+      out.push({word:w,ipa:d[0],meaning:d[1]});
+      seen.add(w);
+    }
+  }
+  return out.slice(0,12);
+}
+
+async function generateLessonVocabulary(){
+  const text=lessonEl?.value?.trim() || lessonText || "";
+  if(!text){
+    vocabContentEl.innerHTML='<div class="vocab-error">Hãy nhập nội dung bài học trước.</div>';
+    return;
+  }
+
+  vocabContentEl.innerHTML='<div class="vocab-loading">⏳ Enbu đang chọn 8–12 từ quan trọng…</div>';
+  const key=document.getElementById("apiKey")?.value.trim();
+  if(!key){
+    renderVocabularyFallback(text);
+    return;
+  }
+
+  const prompt =
+    "Create a vocabulary list for a primary-school English lesson. " +
+    "Use ONLY words or short phrases that actually appear in the lesson. " +
+    "Select 8 to 12 of the most useful/content-rich words or phrases; do NOT return only 1 or 2 items. " +
+    "Prioritize nouns, verbs, adjectives, useful expressions and lesson-specific words. " +
+    "Do not include common grammar words unless they are important to the lesson topic. " +
+    "Return ONLY a JSON array, with no markdown and no explanation. " +
+    "Every item must contain exactly three string fields: word, ipa, meaning. " +
+    "ipa should be simple English IPA. meaning should be one short, natural Vietnamese meaning. " +
+    "Example: [{\"word\":\"teacher\",\"ipa\":\"/ˈtiː.tʃər/\",\"meaning\":\"giáo viên\"}]\n\nLESSON:\n" + text;
+
+  try{
+    const r=await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json","x-goog-api-key":key},
+        body:JSON.stringify({
+          contents:[{parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.1,maxOutputTokens:1200,responseMimeType:"application/json"}
+        })
+      }
+    );
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data=await r.json();
+    const raw=data?.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("") || "";
+    const parsed=cleanVocabularyJson(raw);
+    let normalized=normalizeVocabularyItems(parsed,text);
+
+    // Gemini occasionally returns only two items even when asked for more.
+    // Supplement locally from the actual lesson, without another API request.
+    normalized=supplementVocabulary(normalized,text);
+    if(normalized.length<3) throw new Error("Danh sách từ vựng quá ngắn hoặc không khớp bài học.");
+
+    renderVocabularyRows(normalized,"Gemini 3.5 Flash-Lite + Enbu");
+    log(`✅ Từ vựng: ${normalized.length} từ.`);
+  }catch(err){
+    log(`⚠️ Từ vựng API lỗi: ${err.message}. Dùng bộ từ dự phòng có IPA + nghĩa.`);
+    renderVocabularyFallback(text);
+  }
+}
+
+function openVocabulary(){
+  if(!vocabModalEl) return;
+  vocabModalEl.classList.add("open");
+  vocabModalEl.setAttribute("aria-hidden","false");
+  generateLessonVocabulary();
+}
+function closeVocabulary(){
+  if(!vocabModalEl) return;
+  vocabModalEl.classList.remove("open");
+  vocabModalEl.setAttribute("aria-hidden","true");
+}
+function sayVocabWord(word){
+  if(!connected || !ws || ws.readyState!==WebSocket.OPEN){
+    status("🔌 Hãy kết nối Enbu trước.");
+    return;
+  }
+  setState("speaking");
+  const safe=String(word||"").replace(/[\r\n]+/g," ").trim();
+  if(!safe) return;
+  ws.send(JSON.stringify({
+    clientContent:{
+      turns:[{
+        role:"user",
+        parts:[{text:`Say this English word clearly once: "${safe}". Then stop. Do not add anything else.`}]
+      }],
+      turnComplete:true
+    }
+  }));
+}
+
+function toggleParentPanel(){
+  parentPanel.classList.toggle("open");
+  parentToggleBtn.textContent = parentPanel.classList.contains("open") ? "🔒 Hide adult settings" : "⚙️ Adult settings";
+}
+function clearLesson(){
+  lessonEl.value="";
+  localStorage.removeItem("enbufLesson");
+  lessonText=""; lessonQuestions=[]; lessonPrepared=false; currentQuestionIndex=-1;
+  lessonTitleEl.textContent="Today's English";
+  const check=document.getElementById("lessonCheck");
+  const countEl=document.getElementById("kidLessonCount");
+  if(check){check.dataset.state="idle";check.textContent="📚 Chưa kiểm tra nội dung bài học";}
+  if(countEl) countEl.textContent="📋 0 câu";
+  renderVocabulary("");
+  if(lessonSection) lessonSection.classList.remove("is-hidden");
+  if(lessonToggleBtn) lessonToggleBtn.classList.add("lesson-toggle-active");
+  updateLessonProgress();
+  subtitleEnEl.textContent="Your English sentence will appear here.";
+  subtitleViEl.textContent="Bản dịch tiếng Việt sẽ hiện ở đây.";
+  status("📚 Đã xoá nội dung bài học.");
+}
+
+window.addEventListener("DOMContentLoaded",()=>{
+  const saved=localStorage.getItem("enbufLesson");
+  if(saved){
+    lessonEl.value=saved;
+    lessonText=saved.trim();
+    lessonTitleEl.textContent=detectTopic(saved);
+    renderVocabulary(saved);
+    const prepared = prepareLessonQuestions("nạp bài học đã lưu");
+    if(prepared && lessonSection) lessonSection.classList.add("is-hidden");
+  }
+  initCharacterPicker();
+  renderStars();
+  renderScoreDisplay();
+  updateKidUI();
+
+  // Replace the plain status messages with kid-friendly emotion captions.
+  const oldSetState=setState;
+  window.setState=function(state){
+    oldSetState(state);
+    const labels={
+      idle:"👂 Listening",
+      thinking:"🤔 Thinking",
+      happy:"😄 Great job!",
+      surprised:"😮 Wow!",
+      speaking:"🗣️ Speaking",
+      excited:"🤩 Excited!",
+      love:"🥰 Proud of you!",
+      confused:"😕 Let’s try again!",
+      sleepy:"😴 One moment…"
+    };
+    if(emotionLabelEl) emotionLabelEl.textContent=labels[state]||"🌈 Enbu";
+  };
+  if(parentToggleBtn) parentToggleBtn.addEventListener("click",toggleParentPanel);
+  if(lessonSaveBtn) lessonSaveBtn.addEventListener("click",saveLesson);
+  if(clearLessonBtn) clearLessonBtn.addEventListener("click",clearLesson);
+  if(lessonToggleBtn) lessonToggleBtn.addEventListener("click",()=>{
+    if(!lessonSection) return;
+    const hidden=lessonSection.classList.toggle("is-hidden");
+    lessonToggleBtn.classList.toggle("lesson-toggle-active",!hidden);
+    if(!hidden) lessonEl?.focus();
+  });
+});
+
+const _enbufStatus = status;
+status = function(msg){
+  _enbufStatus(msg);
+  const badge = document.getElementById("sessionBadge");
+  if(badge){
+    const ok = /4\/4|Ready|connected|đã kết nối/i.test(String(msg));
+    badge.textContent = ok ? "🟢 Online" : "🟡 " + String(msg).slice(0,38);
+  }
+};
+
+// Add a simple volume control without changing the working audio pipeline.
+let enbufVolume=1;
+let enbufOutputGate=false;
+let enbufTurnId=0;
+let diagAudioChunks=0;
+let diagAudioSeconds=0;
+let wsReceiveChain=Promise.resolve();
+let wsMessageSeq=0;
+let currentModelTurnId=0;
+let pcmPlayerNode=null;
+let pcmPlayerReady=false;
+let pcmPlayerUrl=null;
+let pcmPendingDrained=false;
+let useWorkletPlayer=false;
+function setVolume(v){ enbufVolume=Math.max(0,Math.min(1,Number(v)/100)); }
+
+const CHARACTER_META={
+  bunny:{name:"Bunny",emoji:"🐰",className:"character-bunny"},cat:{name:"Kitty",emoji:"🐱",className:"character-cat"},
+  panda:{name:"Panda",emoji:"🐼",className:"character-panda"},frog:{name:"Froggy",emoji:"🐸",className:"character-frog"},
+  lion:{name:"Lion",emoji:"🦁",className:"character-lion"},tiger:{name:"Tiger",emoji:"🐯",className:"character-tiger"},
+  penguin:{name:"Penguin",emoji:"🐧",className:"character-penguin"},dog:{name:"Puppy",emoji:"🐶",className:"character-dog"},
+  dragon:{name:"Dragon",emoji:"🐲",className:"character-dragon"},hippo:{name:"Hippo",emoji:"🦛",className:"character-hippo"},
+  chick:{name:"Chick",emoji:"🐥",className:"character-chick"},koala:{name:"Koala",emoji:"🐨",className:"character-koala"}
+};
+function selectCharacter(key,save=true){
+  const meta=CHARACTER_META[key]||CHARACTER_META.bunny;
+  selectedCharacter=key in CHARACTER_META ? key : "bunny";
+  if(face){
+    Object.values(CHARACTER_META).forEach(x=>face.classList.remove(x.className));
+    face.classList.add(meta.className);
+  }
+  const mini=document.querySelector('.avatar-mini');
+  if(mini) mini.textContent=meta.emoji;
+  const badge=document.getElementById('characterBadge');
+  if(badge) badge.textContent=`${meta.emoji} ${meta.name}`;
+  const resultAvatar=document.getElementById('lessonResultAvatar');
+  if(resultAvatar) resultAvatar.textContent=meta.emoji;
+  const nameEl=document.getElementById('characterName');
+  if(nameEl) nameEl.textContent=meta.name;
+  document.querySelectorAll('.character-chip').forEach(btn=>btn.classList.toggle('selected',btn.dataset.character===selectedCharacter));
+  if(save) localStorage.setItem('enbuCharacter',selectedCharacter);
+  log(`🐾 Enbu được chọn: ${meta.name}. Khuôn mặt + biểu cảm dùng cùng animation engine.`);
+  // Reset the visible expression immediately after switching character.
+  if(typeof setState === "function") setState("idle");
+}
+function initCharacterPicker(){
+  document.querySelectorAll('.character-chip').forEach(btn=>btn.addEventListener('click',()=>selectCharacter(btn.dataset.character)));
+  const saved=localStorage.getItem('enbuCharacter')||'bunny';
+  selectCharacter(saved,false);
+}
+
+function toggleAdultSettings(){
+  const modal=document.getElementById("adultModal");
+  const btn=document.getElementById("parentToggleBtn");
+  if(!modal) return;
+  const open=!modal.classList.contains("open");
+  modal.classList.toggle("open",open);
+  modal.setAttribute("aria-hidden",open ? "false" : "true");
+  if(btn) btn.textContent=open ? "🔒 Adult setting" : "⚙️ Adult setting";
+  if(open){
+    const input=document.getElementById("apiKey");
+    setTimeout(()=>input?.focus(),50);
+  }
+}
+
+document.getElementById("apiKey")?.addEventListener("keydown",(e)=>{
+  if(e.key==="Enter") document.getElementById("connectBtn")?.click();
+});
+
+document.getElementById("apiKey")?.addEventListener("keydown",(e)=>{if(e.key==="Enter")document.getElementById("connectBtn")?.click();});
+
+document.addEventListener("DOMContentLoaded",()=>{
+  updateOverallStatus();
+  const turnEl=document.getElementById("statusTurn");
+  if(turnEl && !turnEl.textContent.trim()) turnEl.textContent="⏳ Đang chờ…";
+});
+
+/* ================= V10.22 — FRESH GEMINI SESSION PER STUDENT ================= */
+function resetStudentSession(name){
+  window.currentStudentName=String(name||"").trim();
+  if(!window.currentStudentName) throw new Error("Tên học sinh trống.");
+  const resultNameNow=document.getElementById("lessonResultName");
+  if(resultNameNow) resultNameNow.textContent=`🌟 ${window.currentStudentName}`;
+  updateKidUI();
+
+  const key=document.getElementById("apiKey")?.value.trim();
+  if(!key) throw new Error("Chưa có Gemini API key.");
+  if(!connected || !ws || ws.readyState!==WebSocket.OPEN){
+    status("⚠️ Gemini chưa kết nối. Hãy kết nối lại trước khi đổi học sinh.");
+    throw new Error("Gemini chưa kết nối");
+  }
+
+  log(`👤 Đổi học sinh → ${window.currentStudentName}. Tạo phiên Gemini mới + Reset về Question 1.`);
+
+  // IMPORTANT: every student gets a FRESH Gemini Live session.
+  // Reusing one Live WebSocket across several students eventually reaches
+  // Gemini's session-duration limit (1008/GoAway), which was the cause of
+  // student #3 failing in the supplied log.
+  try{ stopQueuedAudio(); }catch(e){}
+  if(turnDrainTimer){ clearTimeout(turnDrainTimer); turnDrainTimer=null; }
+  if(nextQuestionTimer){ clearTimeout(nextQuestionTimer); nextQuestionTimer=null; }
+  if(translationTimer){ clearTimeout(translationTimer); translationTimer=null; }
+
+  translationBusy=false;
+  translationCache.clear();
+  translationInFlight.clear();
+  pendingTranslationEnglish="";
+  lastEnglishSubtitle="";
+  if(subtitleEnEl) subtitleEnEl.textContent="";
+  if(subtitleViEl) subtitleViEl.textContent="🇻🇳 Đang chờ phiên học sinh mới…";
+
+  // Invalidate all callbacks/messages belonging to the previous socket.
+  ++geminiSocketGeneration;
+  const oldWs=ws;
+  connected=false;
+  ws=null;
+  if(oldWs){
+    try{ oldWs.close(1000,"switching student"); }catch(e){}
+  }
+
+  // Reset lesson state without stopping microphone. connect() will reuse the
+  // existing MediaStream/ScriptProcessor and create a brand-new WebSocket.
+  currentQuestionIndex=-1;
+  activeQuestionIndex=-1;
+  questionRequestSent=false;
+  evaluationFinalized=false;
+  lessonPhase="idle";
+  studentTurnSeen=false;
+  questionAudioTurn=false;
+  studentAnswerTranscript="";
+  studentAnswerQuestionIndex=-1;
+  answeredCount=0;
+  correctCount=0;
+  scoreStars=0;
+  if(!lessonQuestions.length) prepareLessonQuestions("đổi học sinh");
+  renderStars();
+  renderScoreDisplay();
+  updateLessonProgress();
+
+  reconnectingStudentSession=true;
+  connect().catch(err=>{
+    reconnectingStudentSession=false;
+    log("❌ Không thể tạo phiên mới: "+err.message);
+  });
+}
+
+/* ================= V10.22 — STUDENT SWITCH UNFREEZE ================= */
+(function(){
+  // V10.21: all modal nodes are now placed before this script.
+  // Keep a defensive DOM-ready guard so Safari/iPhone cannot bind to null nodes.
+
+  const resultOverlay = document.getElementById("lessonResultOverlay");
+  const resultName = document.getElementById("lessonResultName");
+  const resultStars = document.getElementById("lessonResultStars");
+  const resultScore = document.getElementById("lessonResultScore");
+  const resultNote = document.getElementById("lessonResultNote");
+  const finishBtn = document.getElementById("finishLessonBtn");
+  const changeBtn = document.getElementById("changeStudentFromResultBtn");
+
+  // Find the existing student-switch button if the current build already has one.
+  // If it does not, create a small button in the header.
+  function ensureStudentButton(){
+    let btn = document.getElementById("changeStudentBtn") ||
+              document.getElementById("switchStudentBtn") ||
+              document.querySelector('[data-action="change-student"]');
+    if(!btn){
+      btn=document.createElement("button");
+      btn.id="changeStudentBtn";
+      btn.type="button";
+      btn.textContent="👤 Đổi học sinh";
+      btn.style.cssText="border:0;border-radius:14px;padding:10px 14px;font-weight:800;background:#f1eaf7;color:#604f76;cursor:pointer;margin-left:8px;";
+      const adult=document.getElementById("adultSettingsBtn") ||
+                   document.querySelector('[id*="adult" i]');
+      if(adult && adult.parentElement) adult.parentElement.appendChild(btn);
+      else document.body.prepend(btn);
+    }
+    btn.addEventListener("click", ()=>openStudentNameModal());
+  }
+  function initStudentSwitchUI(){
+    ensureStudentButton();
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", initStudentSwitchUI, {once:true});
+  } else {
+    initStudentSwitchUI();
+  }
+
+  function openStudentNameModal(){
+    const modal=document.getElementById("studentNameModal");
+    if(!modal) return;
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden","false");
+    const input=document.getElementById("studentNameInput");
+    if(input){ input.value=""; setTimeout(()=>input.focus(),50); }
+  }
+  function closeStudentNameModal(){
+    const modal=document.getElementById("studentNameModal");
+    if(modal){ modal.classList.remove("show"); modal.setAttribute("aria-hidden","true"); }
+  }
+
+  // Never trap the user in the dialog: backdrop click and Escape always close it.
+  document.getElementById("studentNameModal")?.addEventListener("click",(e)=>{
+    if(e.target && e.target.id==="studentNameModal") closeStudentNameModal();
+  });
+  document.addEventListener("keydown",(e)=>{
+    if(e.key==="Escape"){
+      const modal=document.getElementById("studentNameModal");
+      if(modal?.classList.contains("show")) closeStudentNameModal();
+    }
+  });
+
+  function getStars(){
+    try{
+      if(typeof scoreStars==="number") return Math.max(0,Math.min(5,scoreStars));
+    }catch(e){}
+    try{
+      if(typeof calculateScoreStars==="function") return calculateScoreStars();
+    }catch(e){}
+    return 0;
+  }
+
+  function showLessonResult(){
+    if(typeof lessonPhase!=="undefined" && lessonPhase!=="finished") return;
+    const n = (typeof answeredCount==="number") ? answeredCount : 0;
+    const c = (typeof correctCount==="number") ? correctCount : 0;
+    const s = getStars();
+    const name = (window.currentStudentName || "").trim();
+
+    if(resultName) resultName.textContent = name ? `🌟 ${name}` : "🌟 Học sinh";
+    if(resultStars) resultStars.textContent = "⭐".repeat(s) + "☆".repeat(5-s);
+    const totalForScore = Array.isArray(lessonQuestions) && lessonQuestions.length ? lessonQuestions.length : n;
+    if(resultScore) resultScore.textContent = `${c}/${totalForScore} câu đạt`;
+    const total = Array.isArray(lessonQuestions) ? lessonQuestions.length : n;
+    if(resultNote) resultNote.textContent = `You finished all ${total} questions! 🎉`;
+
+    if(resultOverlay){
+      resultOverlay.classList.add("show");
+      resultOverlay.setAttribute("aria-hidden","false");
+    }
+  }
+
+  function hideLessonResult(){
+    if(resultOverlay){
+      resultOverlay.classList.remove("show");
+      resultOverlay.setAttribute("aria-hidden","true");
+    }
+  }
+
+  function finishLesson(){
+    hideLessonResult();
+    // Leave the completed result in the UI/log; simply stop the active lesson turn.
+    try{
+      if(typeof stopCurrentAudio==="function") stopCurrentAudio();
+    }catch(e){}
+    try{
+      if(typeof clearAudioQueue==="function") clearAudioQueue();
+    }catch(e){}
+    try{
+      if(typeof setTurn==="function") setTurn("idle");
+    }catch(e){}
+    try{
+      if(typeof log==="function") log("🏁 Bài học đã kết thúc.");
+    }catch(e){}
+  }
+
+  finishBtn?.addEventListener("click", finishLesson);
+  changeBtn?.addEventListener("click", ()=>{
+    hideLessonResult();
+    openStudentNameModal();
+  });
+
+  document.getElementById("cancelStudentBtn")?.addEventListener("click", closeStudentNameModal);
+
+  document.getElementById("startStudentBtn")?.addEventListener("click", ()=>{
+    const input=document.getElementById("studentNameInput");
+    const name=(input?.value || "").trim();
+    if(!name){ input?.focus(); return; }
+
+    window.currentStudentName=name;
+
+    // IMPORTANT: this button must restart the lesson on the EXISTING Gemini
+    // connection. The previous version only reset a few variables and then
+    // called non-existent startLesson/startApp functions, so the modal could
+    // remain open and Question 1 was never requested again.
+    try{
+      closeStudentNameModal();
+      resetStudentSession(name);
+    }catch(err){
+      try{ log("❌ Không thể đổi học sinh: "+err.message); }catch(e){}
+      // V10.21: do not force-open or trap the dialog after an error.
+      // The user can reopen it manually with "Đổi học sinh".
+      closeStudentNameModal();
+    }
+  });
+
+  // Enter key submits the name.
+  document.getElementById("studentNameInput")?.addEventListener("keydown",(e)=>{
+    if(e.key==="Enter") document.getElementById("startStudentBtn")?.click();
+    if(e.key==="Escape") closeStudentNameModal();
+  });
+
+  // Expose a small hook for the existing lesson engine.
+  window.showStudentLessonResult = showLessonResult;
+  window.openStudentNameModal = openStudentNameModal;
+
+  /*
+   * Completion hook:
+   * wrap the common end-of-lesson functions if they exist.
+   * This deliberately does NOT alter normal turn/audio handling.
+   */
+  const candidateNames=[
+    "finishLesson",
+    "completeLesson",
+    "onLessonComplete",
+    "handleLessonComplete"
+  ];
+  for(const fn of candidateNames){
+    if(typeof window[fn]==="function" && !window[fn].__v1018wrapped){
+      const original=window[fn];
+      const wrapped=function(){
+        const r=original.apply(this,arguments);
+        setTimeout(showLessonResult,250);
+        return r;
+      };
+      wrapped.__v1018wrapped=true;
+      window[fn]=wrapped;
+    }
+  }
+
+  // If the existing engine marks the final question via a global completion flag,
+  // poll very lightly so we don't interfere with the audio path.
+  let lastCompleted=false;
+  setInterval(()=>{
+    try{
+      const q=typeof currentQuestionIndex==="number" ? currentQuestionIndex : -1;
+      const total=Array.isArray(lessonQuestions) ? lessonQuestions.length : -1;
+      const done = total>0 &&
+                   typeof lessonPhase!=="undefined" && lessonPhase==="finished" &&
+                   q>=total &&
+                   typeof answeredCount==="number" && answeredCount>=total;
+      if(done && !lastCompleted){
+        lastCompleted=true;
+        setTimeout(showLessonResult,300);
+      }
+      if(!done) lastCompleted=false;
+    }catch(e){}
+  },500);
+})();
+
+</script>
+</div>
+</body>
+</html>
